@@ -1,3 +1,5 @@
+# ansible-playbook -i inventory-homelab/ bootstrap_office.yml --check
+# ansible-playbook -i inventory-homelab/ bootstrap_office.yml
 ---
 - hosts: netdata_registry
   become: yes
@@ -12,9 +14,139 @@
     nginx_listen_port: 8080
   roles:
     - role: ansible-nginx
+      nginx_listen_port: 8080
     - role: ansible-netdata
     - role: ansible-snmpd
-  # tasks:
+  tasks:
+    - name: "create /etc/nginx/sites-available/netdata"
+      copy:
+        content: |
+
+          upstream backend {
+              server 127.0.0.1:19999;
+              keepalive 1024;
+          }
+
+          server {
+              listen *:8080;
+              server_name my.web.server.name;
+
+              location / {
+                  proxy_set_header X-Forwarded-Host $host;
+                  proxy_set_header X-Forwarded-Server $host;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_pass http://backend;
+                  proxy_http_version 1.1;
+                  proxy_pass_request_headers on;
+                  proxy_set_header Connection "keep-alive";
+                  proxy_store off;
+                  gzip on;
+                  gzip_proxied any;
+                  gzip_types *;
+
+                  # Block any HTTP requests other than GET, HEAD, and OPTIONS
+                  limit_except GET HEAD OPTIONS {
+                      deny all;
+                  }
+              }
+
+              # WordPress Pingback Request Denial
+              if ($http_user_agent ~* "WordPress") {
+                  return 403;
+              }
+
+          }
+
+
+        dest: "/etc/nginx/sites-available/netdata"
+        owner: "root"
+        group: "root"
+        mode: 0644
+
+    - name: 'Create symlink for /etc/nginx/sites-enabled/netdata'
+      file:
+        src: "/etc/nginx/sites-available/netdata"
+        dest: "/etc/nginx/sites-enabled/netdata"
+        state: link
+
+    - name: add lines to globl section of /etc/netdata/netdata.conf
+      lineinfile: "dest=/etc/netdata/netdata.conf regexp='^{{ item.regexp }}' line='{{ item.line }}' insertafter='[global]'"
+      with_items:
+        - { regexp: '^      bind socket to IP = 127.0.0.1', line: '      bind socket to IP = 127.0.0.1' }
+        - { regexp: '^      disconnect idle web clients after seconds = 3600', line: '      disconnect idle web clients after seconds = 3600' }
+        - { regexp: '^      enable web responses gzip compression = no', line: '      enable web responses gzip compression = no' }
+
+    - name: "file limits /etc/security/limits.d/nginx.conf"
+      copy:
+        content: |
+          nginx   soft    nofile  10000
+          nginx   hard    nofile  30000
+        dest: "/etc/security/limits.d/nginx.conf"
+        owner: "root"
+        group: "root"
+        mode: 0644
+
+    - name: "file limits /etc/security/limits.d/netdata.conf"
+      copy:
+        content: |
+          netdata   soft    nofile  10000
+          netdata   hard    nofile  30000
+        dest: "/etc/security/limits.d/netdata.conf"
+        owner: "root"
+        group: "root"
+        mode: 0644
+
+
+
+    - name: "Create directory: /etc/systemd/system/netdata.service.d"
+      file:
+        path: "/etc/systemd/system/netdata.service.d"
+        state: directory
+        owner: "root"
+        group: "root"
+
+    - name: "Create directory: /etc/systemd/system/nginx.service.d"
+      file:
+        path: "/etc/systemd/system/nginx.service.d"
+        state: directory
+        owner: "root"
+        group: "root"
+
+
+    - name: "file limits /etc/systemd/system/nginx.service.d/limits.conf"
+      copy:
+        content: |
+          [Service]
+          LimitNOFILE=30000
+        dest: "/etc/systemd/system/nginx.service.d/limits.conf"
+        owner: "root"
+        group: "root"
+        mode: 0644
+
+
+    - name: "file limits /etc/systemd/system/netdata.service.d/limits.conf"
+      copy:
+        content: |
+          [Service]
+          LimitNOFILE=30000
+        dest: "/etc/systemd/system/netdata.service.d/limits.conf"
+        owner: "root"
+        group: "root"
+        mode: 0644
+
+    - name: reload systemd configuration
+      become: yes
+      command: systemctl daemon-reload
+
+    # Restart service and ensure it is enabled
+    - name: start and enable nginx
+      become: yes
+      service: name=nginx state=restarted enabled=yes
+
+    - name: start and enable netdata
+      become: yes
+      service: name=netdata state=restarted enabled=yes
+
 
 # - hosts: netdata:!netdata_registry
 #   vars:
