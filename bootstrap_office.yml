@@ -72,9 +72,9 @@
     - name: add lines to globl section of /etc/netdata/netdata.conf
       lineinfile: "dest=/etc/netdata/netdata.conf regexp='^{{ item.regexp }}' line='{{ item.line }}' insertafter='[global]'"
       with_items:
-        - { regexp: '^      bind socket to IP = 127.0.0.1', line: '      bind socket to IP = 127.0.0.1' }
-        - { regexp: '^      disconnect idle web clients after seconds = 3600', line: '      disconnect idle web clients after seconds = 3600' }
-        - { regexp: '^      enable web responses gzip compression = no', line: '      enable web responses gzip compression = no' }
+        - { regexp: '^.*bind socket to IP = 127.0.0.1', line: '      bind socket to IP = 127.0.0.1' }
+        - { regexp: '^.*disconnect idle web clients after seconds = 3600', line: '      disconnect idle web clients after seconds = 3600' }
+        - { regexp: '^.*enable web responses gzip compression = no', line: '      enable web responses gzip compression = no' }
 
     - name: "file limits /etc/security/limits.d/nginx.conf"
       copy:
