@@ -1,0 +1,12 @@
+awscli
+shade
+ansible
+ansible-lint
+boto
+boto3
+botocore
+netaddr
+pretty
+python-slugify
+six
+simplejson
