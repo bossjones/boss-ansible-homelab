@@ -69,12 +69,56 @@
         dest: "/etc/nginx/sites-enabled/netdata"
         state: link
 
-    - name: add lines to globl section of /etc/netdata/netdata.conf
-      lineinfile: "dest=/etc/netdata/netdata.conf regexp='{{ item.regexp }}' line='{{ item.line }}' insertafter='[global]'"
-      with_items:
-        - { regexp: '\t bind socket to IP = 127.0.0.1', line: '\t bind socket to IP = 127.0.0.1' }
-        - { regexp: '\t disconnect idle web clients after seconds = 3600', line: '\t disconnect idle web clients after seconds = 3600' }
-        - { regexp: '\t enable web responses gzip compression = no', line: '\t enable web responses gzip compression = no' }
+    # - name: add lines to globl section of /etc/netdata/netdata.conf
+    #   lineinfile:
+    #     dest: /etc/netdata/netdata.conf
+    #     regexp: '{{ item.regexp }}'
+    #     line: '{{ item.line }}'
+    #     insertafter: '[global]'
+    #   with_items:
+    #     - { regexp: '\\t bind socket to IP = 127.0.0.1', line: '\\t bind socket to IP = 127.0.0.1' }
+    #     - { regexp: '\\t disconnect idle web clients after seconds = 3600', line: '\\t disconnect idle web clients after seconds = 3600' }
+    #     - { regexp: '\\t enable web responses gzip compression = no', line: '\\t enable web responses gzip compression = no' }
+
+
+    # - name: "create /etc/netdata/netdata.conf"
+    #   copy:
+    #     content: |
+
+    #     dest: "/etc/netdata/netdata.conf"
+    #     owner: "netdata"
+    #     group: "netdata"
+    #     mode: 0644
+
+    # grep -n '\[global\]' /etc/netdata/netdata.conf | cut -d: -f1
+    - name: "get line of global"
+      shell: 'grep -n "\[global\]" /etc/netdata/netdata.conf | cut -d: -f1'
+      become: yes
+      register: global_linenumber
+
+    - name: "sed disconnect idle web clients after seconds = 3600"
+      shell: |
+        file /opt/netdata.lock
+      register: netdata_lock
+      become: yes
+
+    - name: "sed bind socket to IP = 127.0.0.1"
+      shell: |
+        sed -i '{{global_linenumber.stdout}}a\        bind socket to IP = 127.0.0.1' /etc/netdata/netdata.conf
+      become: yes
+      when: netdata_lock.stdout.find("No such file or directory") != -1
+
+    - name: "sed disconnect idle web clients after seconds = 3600"
+      shell: |
+        sed -i '{{global_linenumber.stdout}}a\        disconnect idle web clients after seconds = 3600' /etc/netdata/netdata.conf
+      become: yes
+      when: netdata_lock.stdout.find("No such file or directory") != -1
+
+    - name: "sed enable web responses gzip compression = no"
+      shell: |
+        sed -i '{{global_linenumber.stdout}}a\        enable web responses gzip compression = no' /etc/netdata/netdata.conf
+      become: yes
+      when: netdata_lock.stdout.find("No such file or directory") != -1
 
     - name: "file limits /etc/security/limits.d/nginx.conf"
       copy:
