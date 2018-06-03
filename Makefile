@@ -54,3 +54,12 @@ raw:
 # Taken from this git issue pyca/cryptography#2692
 install-virtualenv-osx:
 	ARCHFLAGS="-arch x86_64" LDFLAGS="-L/usr/local/opt/openssl/lib" CFLAGS="-I/usr/local/opt/openssl/include" pip install -r requirements.txt
+
+decrypt_all:
+	./decrypt_all.sh
+
+encrypt_all:
+	./encrypt_all.sh
+
+pre_commit_install:
+	cp git_hooks/pre-commit .git/hooks/pre-commit

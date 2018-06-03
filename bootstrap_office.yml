@@ -3,6 +3,8 @@
 # ansible-playbook -i inventory-homelab/ bootstrap_office.yml --tags "scarlett_ids"
 ---
 
+# no_log: true
+
 - hosts: raspbian
   gather_facts: True
   become: yes

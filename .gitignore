@@ -24,3 +24,4 @@ roles/boss-ansible-role-debug/
 roles/ansible-logrotate/
 roles/ansible-role-unifi-controller/
 roles/lifeofguenter.oracle-java/
+vault_password
