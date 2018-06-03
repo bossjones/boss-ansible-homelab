@@ -22,3 +22,5 @@ roles/ansible-timezone/
 roles/boss-ansible-role-swapfile/
 roles/boss-ansible-role-debug/
 roles/ansible-logrotate/
+roles/ansible-role-unifi-controller/
+roles/lifeofguenter.oracle-java/

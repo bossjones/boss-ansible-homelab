@@ -21,4 +21,10 @@ scarlett_office
 [netdata_registry:children]
 scarlett_office
 
+[netdata_slaves:children]
+scarlett_cluster
+scarlett_ids
 
+[raspbian:children]
+scarlett_office
+scarlett_ids
