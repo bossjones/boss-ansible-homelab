@@ -115,10 +115,15 @@
         # apt-get -y install linux-headers-$(uname -r)
         # cd /usr/local/bin && wget https://github.com/direnv/direnv/releases/download/v2.13.3/direnv.linux-arm && mv direnv.linux-arm direnv && chmod +x direnv
 
+    # SOURCE: https://www.bitpi.co/2015/02/11/how-to-change-raspberry-pis-swapfile-size-on-rasbian/
     - name: "sed CONF_SWAPSIZE=1024 /etc/dphys-swapfile"
       shell: |
-        sed -i 's,CONF_SWAPSIZE=.*,CONF_SWAPSIZE=1024,g' /etc/dphys-swapfile;dphys-swapfile setup
+        sed -i 's,CONF_SWAPSIZE=.*,CONF_SWAPSIZE=2048,g' /etc/dphys-swapfile;dphys-swapfile setup
       become: yes
+
+    - name: start and enable dphys-swapfile
+      become: yes
+      service: name=dphys-swapfile state=restarted enabled=yes
 
     - name: remove apt-key
       apt_key:
@@ -777,3 +782,156 @@
         sysctl_set: yes
         state: present
         reload: yes
+
+##################################################################################
+# datadog install
+##################################################################################
+
+- hosts: raspbian
+  gather_facts: True
+  become: yes
+  become_method: sudo
+  vars:
+      datadog_agent_home: "/opt/datadog-agent"
+      datadog_skip_integrations: 1
+      datadog_log_file: "/var/log/datadog-agent.log"
+      datadog_hostname: "{{inventory_hostname}}"
+  tags:
+    - datadog
+  pre_tasks:
+
+    - include_vars: "{{ item }}"
+      with_fileglob:
+        - ./vars/secret/*
+        - ./vars/clear/*
+      tags: ['always']
+
+    - name: Debian Stretch requires dirmngr package to be installed in order to use apt_key
+      become: yes  # On Ansible < 1.9, use `sudo: yes` instead of `become: yes`
+      apt:
+        name: dirmngr
+        state: present
+
+  tasks:
+
+
+    - name: "Create directory: {{ datadog_agent_home }}/agent"
+      file:
+        path: "{{ datadog_agent_home }}/agent"
+        state: directory
+        owner: "root"
+        group: "root"
+
+    - name: datadog-ansible-raspberrypi dependencies
+      action: apt pkg={{item}} state=present
+      with_items:
+      - libpython2.7-dev
+      - sysstat
+    - name: datadog-ansible-raspberrypi dependencies for integrations
+      action: apt pkg={{item}} state=present
+      with_items:
+      - libpq-dev
+      - unixodbc-dev
+      - libffi-dev
+      - libssl-dev
+      when: datadog_skip_integrations == 0
+    - name: datadog-ansible-raspberrypi check installation
+      stat: path={{ datadog_agent_home }}
+      register: dd_agent_installed
+    - name: datadog-ansible-raspberrypi install agent
+      environment:
+        DD_API_KEY: "{{ datadog_api_key }}"
+        DD_HOME: "{{ datadog_agent_home }}"
+        DD_START_AGENT: 0
+        DD_SKIP_INTEGRATIONS: "{{ datadog_skip_integrations }}"
+      shell: sh -c "$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/setup_agent.sh)"
+      when: not dd_agent_installed.stat.exists
+
+    - name: Copy example datadog conf to 'real' datadog conf
+      shell: cp -fv {{ datadog_agent_home }}/agent/datadog.conf.example {{ datadog_agent_home }}/agent/datadog.conf
+
+    - name: Swap datadog api key
+      shell: "sed -i 's/api_key:.*/api_key: {{ datadog_api_key | default('') }}/' {{ datadog_agent_home }}/agent/datadog.conf"
+
+    - name: datadog-ansible-raspberrypi setup hostname
+      when: datadog_hostname is defined
+      lineinfile:
+        path: "{{ datadog_agent_home }}/agent/datadog.conf"
+        regexp: '^# hostname='
+        line: 'hostname={{ datadog_hostname }}'
+    - name: datadog-ansible-raspberrypi register rc.local
+      blockinfile:
+        path: /etc/rc.local
+        insertbefore: "exit 0"
+        content: "nohup sh {{ datadog_agent_home }}/bin/agent > {{ datadog_log_file }} &"
+    - name: datadog-ansible-raspberrypi check agent running
+      shell: ps -ef | grep "python agent/ddagent.py --use_simple_http_client=1" | grep -v grep | wc -l
+      register: dd_agent_running
+    - name: datadog-ansible-raspberrypi starting agent
+      shell: "nohup sh {{ datadog_agent_home }}/bin/agent > {{ datadog_log_file}} &"
+      when: dd_agent_running.rc == 0
+
+    # - role: ansible-datadog
+    #   datadog_agent_allow_downgrade: false
+    #   datadog_agent_version: "1:6.0.0-1"
+    #   datadog_config:
+    #     tags: "homelab, raspbian"
+    #     log_level: INFO
+    #     apm_enabled: "false" # has to be set as a string
+    #     # logs related config
+    #     log_enabled: false
+    #     logset: main
+    #   datadog_config_ex:
+    #     trace.config:
+    #       env: dev
+    #     trace.concentrator:
+    #       extra_aggregators: version
+    #   datadog_checks:
+    #     process:
+    #       init_config:
+    #       instances:
+    #         - name: ssh
+    #           search_string: ['ssh', 'sshd' ]
+    #         - name: syslog
+    #           search_string: ['rsyslog']
+    #           cpu_check_interval: 0.2
+    #           exact_match: true
+    #           ignore_denied_access: true
+    #     # ssh_check:
+    #     #   init_config:
+    #     #   instances:
+    #     #     - host: localhost
+    #     #       port: 22
+    #     #       username: root
+    #     #       password: changeme
+    #     #       sftp_check: True
+    #     #       private_key_file:
+    #     #       add_missing_keys: True
+    #     nginx:
+    #       init_config:
+    #       instances:
+    #         - nginx_status_url: http://localhost/nginx_status/
+    #           tags:
+    #             - "instance:{{inventory_hostname}}"
+    #             - "nginx_service:nginx_status"
+    #         - nginx_status_url: http://localhost:19999/
+    #           tags:
+    #             - "instance:{{inventory_hostname}}"
+    #             - "nginx_service:netdata"
+    #       # logs:
+    #       #   - type: file
+    #       #     path: /var/log/nginx.log
+    #       #     service: nginx
+    #       #     source: nginx
+    #       #     sourcecategory: webapp
+    #       #     tags: env:prod
+    #       #   - type: tcp
+    #       #     port: 10514
+    #       #     service: webapp
+    #       #     source: php
+    #       #     sourcecategory: front
+    #       #     log_processing_rules:
+    #       #       - type: exclude_at_match
+    #       #         name: exclude_datadoghq_users
+    #       #         # Regexp can be anything
+    #       #         pattern: User=\w+@datadoghq.com
