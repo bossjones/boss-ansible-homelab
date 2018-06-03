@@ -822,6 +822,13 @@
         owner: "root"
         group: "root"
 
+    - name: "Create directory: {{ datadog_agent_home }}/logs"
+      file:
+        path: "{{ datadog_agent_home }}/logs"
+        state: directory
+        owner: "root"
+        group: "root"
+
     - name: datadog-ansible-raspberrypi dependencies
       action: apt pkg={{item}} state=present
       with_items:
