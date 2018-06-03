@@ -358,7 +358,6 @@
         - libdw-dev
         - libelf-dev
         - libgtk2.0-dev
-        - libnuma-dev
         - libperl-dev
         - libslang2-dev
         - libunwind8
@@ -369,38 +368,25 @@
         - make
         - mercurial
         - mtr
-        - ncurses
         - net-tools
         - ngrep
         - nmap
         - nmon
         - ntpdate
-        - on-dev
-        - perf
         - perf-tools-unstable
         - perl
-        - perl-Getopt-Long.noarch
-        - perl-Time-HiRes
         - procps
-        - procps-ng
         - psmisc
         - pv
-        - pyth
         - python-dev
-        - python-software-properties
-        - qperf
         - ruby2.3
-        - sh-completion
         - socat
         - software-properties-common
-        - sos
-        - speedtest-cli
         - sslscan
         - strace
         - sysstat
         - tar
         - tcpdump
-        - top
         - tree
         - vim
         - wget
@@ -596,3 +582,27 @@
       shell: 'updatedb'
       become: yes
       register: updatedb
+
+####################################################################################################
+# # sysctl SETUP(VSCode requirement)
+####################################################################################################
+- hosts: all
+  gather_facts: True
+  tags:
+    - sysctl
+  vars:
+    bossjones__user: "pi"
+    bossjones__group: "pi"
+  become: yes
+  # become_method: sudo
+  # SOURCE: https://docs.ansible.com/ansible/latest/playbooks_environment.html
+  environment:
+    SHELL: /bin/bash
+  tasks:
+    - name: 'set fs.inotify.max_user_watches=524288'
+      sysctl:
+        name: fs.inotify.max_user_watches
+        value: 524288
+        sysctl_set: yes
+        state: present
+        reload: yes
