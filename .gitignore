@@ -21,3 +21,4 @@ roles/ansible-rsyslog/
 roles/ansible-timezone/
 roles/boss-ansible-role-swapfile/
 roles/boss-ansible-role-debug/
+roles/ansible-logrotate/
