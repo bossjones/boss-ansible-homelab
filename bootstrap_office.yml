@@ -329,7 +329,8 @@
         state: present
       become: True
       with_items:
-        - asciidoc
+        # - asciidoc
+        - peco
         - atop
         - bash
         - bash-completion
@@ -339,27 +340,27 @@
         - build-essential
         - ca-certificates
         - ccze
-        - clang-3.5
+        # - clang-3.5
         - dstat
         - elfutils
         - file
         - flex
-        - gettext
+        # - gettext
         - git
-        - hdparm
+        # - hdparm
         - htop
         - iftop
         - iotop
         - iperf
         - iperf3
         - iproute
-        - libaudit-dev
-        - libdw-dev
-        - libelf-dev
-        - libperl-dev
-        - libslang2-dev
-        - libunwind8-dev
-        - llvm-3.5
+        # - libaudit-dev
+        # - libdw-dev
+        # - libelf-dev
+        # - libperl-dev
+        # - libslang2-dev
+        # - libunwind8-dev
+        # - llvm-3.5
         - lsof
         - ltrace
         - make
@@ -368,7 +369,7 @@
         - net-tools
         - ngrep
         - nmap
-        - nmon
+        # - nmon
         - ntpdate
         - perf-tools-unstable
         - perl
@@ -378,8 +379,8 @@
         - python-dev
         - ruby2.3
         - socat
-        - software-properties-common
-        - sslscan
+        # - software-properties-common
+        # - sslscan
         - strace
         - sysstat
         - tar
@@ -583,7 +584,7 @@
 ####################################################################################################
 # # sysctl SETUP(VSCode requirement)
 ####################################################################################################
-- hosts: all
+- hosts: rpi
   gather_facts: True
   tags:
     - sysctl
@@ -603,3 +604,18 @@
         sysctl_set: yes
         state: present
         reload: yes
+
+
+# FIXME: https://github.com/avishefi/ansible-role-netdata/blob/02971469f512ac103a36de3840b93bed531a0315/templates/netdata.logrotate.j2
+# Include logrotate for netdata
+# {{ netdata_logs }}/*.log {
+# 	rotate 14
+# 	daily
+# 	missingok
+# 	notifempty
+# 	compress
+# 	sharedscripts
+# 	postrotate
+# 		/bin/kill -HUP `pidof netdata 2>/dev/null` 2>/dev/null || true
+# 	endscript
+# }
