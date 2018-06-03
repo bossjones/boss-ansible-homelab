@@ -502,14 +502,22 @@
       copy:
         content: |
 
+          log_format netdata '$remote_addr - $remote_user [$time_local] '
+                '"$request" $status $body_bytes_sent '
+                '$request_length $request_time '
+                '"$http_referer" "$http_user_agent"';
+
+          access_log /var/log/nginx/access.log netdata;
+
           upstream backend {
               server 127.0.0.1:19999;
               keepalive 1024;
           }
 
           server {
-              listen *:8080;
-              server_name my.web.server.name;
+              listen *:8081;
+              # the virtual host name of this
+              server_name netdata.example.com;
 
               location / {
                   proxy_set_header X-Forwarded-Host $host;
@@ -528,6 +536,13 @@
                   limit_except GET HEAD OPTIONS {
                       deny all;
                   }
+                location /stub_status {
+                    stub_status on;
+                    access_log off;
+                    allow 192.168.1.0/24;
+                    allow 127.0.0.1;
+                    deny all;
+                }
               }
 
               # WordPress Pingback Request Denial
