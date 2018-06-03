@@ -331,6 +331,14 @@
                     allow 127.0.0.1;
                     deny all;
                 }
+
+                location /nginx_status {
+                  stub_status on;
+                  access_log   off;
+                  allow 127.0.0.1;
+                  deny all;
+                }
+
               }
 
               # WordPress Pingback Request Denial
@@ -630,6 +638,14 @@
                     allow 127.0.0.1;
                     deny all;
                 }
+
+                location /nginx_status {
+                  stub_status on;
+                  access_log   off;
+                  allow 127.0.0.1;
+                  deny all;
+                }
+
               }
 
               # WordPress Pingback Request Denial
@@ -834,6 +850,7 @@
       with_items:
       - libpython2.7-dev
       - sysstat
+      - snmp
     - name: datadog-ansible-raspberrypi dependencies for integrations
       action: apt pkg={{item}} state=present
       with_items:
@@ -853,6 +870,38 @@
         DD_SKIP_INTEGRATIONS: "{{ datadog_skip_integrations }}"
       shell: sh -c "$(curl -L https://raw.githubusercontent.com/DataDog/dd-agent/master/packaging/datadog-agent/source/setup_agent.sh)"
       when: not dd_agent_installed.stat.exists
+
+
+    - name: "create {{ datadog_agent_home }}/agent/conf.d/nginx.yaml"
+      copy:
+        content: |
+          init_config:
+          instances:
+              # For every instance, you have an `nginx_status_url` and (optionally)
+              # a list of tags.
+
+              -   nginx_status_url: http://127.0.0.1:8081/nginx_status/
+                  tags:
+                      - "instance:{{inventory_hostname}}"
+                      - "nginx_service:nginx_status"
+
+
+
+        dest: "{{ datadog_agent_home }}/agent/conf.d/nginx.yaml"
+        owner: "root"
+        group: "root"
+        mode: 0644
+
+    # root@scarlett-office:/etc/nginx/sites-available# snmpwalk -Os -c public -v 1 nsdude UCD-SNMP-MIB::laTable
+    # MIB search path: /root/.snmp/mibs:/usr/share/snmp/mibs:/usr/share/snmp/mibs/iana:/usr/share/snmp/mibs/ietf:/usr/share/mibs/site:/usr/share/snmp/mibs:/usr/share/mibs/iana:/usr/share/mibs/ietf:/usr/share/mibs/netsnmp
+    # Cannot find module (SNMPv2-SMI): At line 34 in /usr/share/snmp/mibs/UCD-SNMP-MIB.txt
+    # Cannot find module (SNMPv2-TC): At line 37 in /usr/share/snmp/mibs/UCD-SNMP-MIB.txt
+    # Did not find 'enterprises' in module #-1 (/usr/share/snmp/mibs/UCD-SNMP-MIB.txt)
+    # Did not find 'DisplayString' in module #-1 (/usr/share/snmp/mibs/UCD-SNMP-MIB.txt)
+    # Did not find 'TruthValue' in module #-1 (/usr/share/snmp/mibs/UCD-SNMP-MIB.txt)
+    # Unlinked OID in UCD-SNMP-MIB: ucdavis ::= { enterprises 2021 }
+    # Undefined identifier: enterprises near line 39 of /usr/share/snmp/mibs/UCD-SNMP-MIB.txt
+    # UCD-SNMP-MIB::laTable: Unknown Object Identifier
 
     - name: Copy example datadog conf to 'real' datadog conf
       shell: cp -fv {{ datadog_agent_home }}/agent/datadog.conf.example {{ datadog_agent_home }}/agent/datadog.conf
@@ -877,6 +926,7 @@
     - name: datadog-ansible-raspberrypi starting agent
       shell: "nohup sh {{ datadog_agent_home }}/bin/agent > {{ datadog_log_file}} &"
       when: dd_agent_running.rc == 0
+
 
     # - role: ansible-datadog
     #   datadog_agent_allow_downgrade: false
