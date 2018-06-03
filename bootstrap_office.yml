@@ -318,6 +318,11 @@
       become: yes
       register: rpi_update_results
 
+    - name: 'run locale-gen en_US.UTF-8'
+      shell: 'DEBIAN_FRONTEND=noninteractive locale-gen en_US.UTF-8'
+      become: yes
+      register: local_gen_results
+
     - name: debian | Installing Pre-Reqs
       apt:
         name: "{{ item }}"
@@ -349,7 +354,6 @@
         - iperf
         - iperf3
         - iproute
-        - iputils
         - libaudit-dev
         - libdw-dev
         - libelf-dev
@@ -401,6 +405,7 @@
         - vim
         - wget
         - mlocate
+        - ncdu
 
         # apt-get -y install linux-headers-$(uname -r)
         # cd /usr/local/bin && wget https://github.com/direnv/direnv/releases/download/v2.13.3/direnv.linux-arm && mv direnv.linux-arm direnv && chmod +x direnv
