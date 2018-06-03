@@ -549,6 +549,12 @@
         dest: "/etc/nginx/sites-enabled/netdata"
         state: link
 
+
+    - name: 'delete symlink for /etc/nginx/sites-enabled/default'
+      file:
+        dest: "/etc/nginx/sites-enabled/default"
+        state: absent
+
     - name: "get line of global"
       shell: 'grep -n "\[global\]" /etc/netdata/netdata.conf | cut -d: -f1'
       become: yes
