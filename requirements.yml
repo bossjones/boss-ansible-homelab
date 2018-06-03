@@ -50,3 +50,9 @@
 - src: https://www.github.com/mrlesmithjr/ansible-nginx.git
 - src: https://www.github.com/mrlesmithjr/ansible-snmpd.git
 - src: https://www.github.com/mrlesmithjr/ansible-avahi.git
+- src: https://www.github.com/mrlesmithjr/ansible-ntp.git
+- src: https://www.github.com/mrlesmithjr/ansible-timezone.git
+- src: https://www.github.com/mrlesmithjr/ansible-rsyslog.git
+- src: https://www.github.com/bossjones/boss-ansible-role-swapfile
+- src: https://www.github.com/bossjones/boss-ansible-role-debug
+- src: https://www.github.com/mrlesmithjr/ansible-motd

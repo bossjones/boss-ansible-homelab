@@ -15,3 +15,9 @@ roles/tvieira.powerline-fonts/
 roles/ulimit/
 roles/viasite-ansible.zsh/
 roles/zzet.rbenv/
+roles/ansible-motd/
+roles/ansible-ntp/
+roles/ansible-rsyslog/
+roles/ansible-timezone/
+roles/boss-ansible-role-swapfile/
+roles/boss-ansible-role-debug/
