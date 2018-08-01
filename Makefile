@@ -63,3 +63,9 @@ encrypt_all:
 
 pre_commit_install:
 	cp git_hooks/pre-commit .git/hooks/pre-commit
+
+tmux-provision:
+	@ansible-playbook -vvv -i inventory-homelab/ bootstrap_office.yml --tags "tmux" -f 10
+
+byobu-provision:
+	@ansible-playbook -vvv -i inventory-homelab/ bootstrap_office.yml --tags "byobu" -f 10

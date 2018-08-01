@@ -992,3 +992,338 @@
     #       #         name: exclude_datadoghq_users
     #       #         # Regexp can be anything
     #       #         pattern: User=\w+@datadoghq.com
+
+####################################################################################################
+# pi - COMPILE TMUX SETUP
+####################################################################################################
+- hosts: raspbian
+  tags:
+    - tmux
+  vars:
+    bossjones__user: pi
+    bossjones__group: pi
+    cheatsheet_update: yes
+    tmux_version: "2.6"
+    tmux_install_method: "source"
+    tmux_path: "/usr/local/"
+    tmux_tmp_dir: "/tmp/"
+    tmux_playbook_version: "0.0.1"
+    tmux_file_tag: "tmux-{{tmux_version}}"
+    tmux_file_name: "{{tmux_file_tag}}.tar.gz"
+    tmux_base_url: "https://github.com/tmux/tmux/releases/download/{{tmux_version}}/"
+    tmux_tarball_url: "{{tmux_base_url}}{{tmux_file_name}}"
+  become: yes
+  # become_user: pi
+  # become_method: sudo
+  # SOURCE: https://docs.ansible.com/ansible/latest/playbooks_environment.html
+  environment:
+    SHELL: /bin/bash
+  tasks:
+    - name: Install Debian packages tmux prereqs
+      apt: pkg={{item}} state=latest update_cache=yes
+      with_items:
+        - libevent-dev
+        - libncurses-dev
+        - pkg-config
+        - wget
+        - curl
+        - make
+        - gcc
+        - autoconf
+        - automake
+        - libtool
+      when: ansible_os_family == "Debian"
+      # become: yes
+      # become_user: root
+
+      become: yes
+      become_method: sudo
+
+    - name: Clone utf8proc
+      git:
+        repo: https://github.com/JuliaLang/utf8proc
+        dest: "/usr/local/src/utf8proc"
+        version: "master"
+      become: yes
+      become_user: root
+
+    - name: Compile and install utf8proc
+      shell: |
+                make &&
+                make check &&
+                make install
+                chdir=/usr/local/src/utf8proc
+      register: utf8proc_compiled
+      become: yes
+      become_user: root
+
+    - name: Checking installed version of tmux
+      shell: /usr/bin/test "$({{tmux_path}}bin/tmux -V 2> /dev/null)" = {{ tmux_version }}
+      register: wanted_version_installed
+      ignore_errors: True
+      changed_when: "wanted_version_installed.rc == 1"
+      become: yes
+      become_user: root
+
+    - name: Download tmux {{tmux_version}}
+      get_url: url={{tmux_tarball_url}} dest={{tmux_tmp_dir}}{{tmux_file_name}} timeout=120
+      when: wanted_version_installed.rc == 1
+      become: yes
+      become_user: root
+
+    - name: Unpack tmux {{tmux_version}}
+      command: tar -xzf {{tmux_file_name}} chdir={{tmux_tmp_dir}}
+      when: wanted_version_installed.rc == 1
+      become: yes
+      become_user: root
+
+    - name: Compile and install tmux {{tmux_version}}
+      shell: |
+        export LDFLAGS="-lresolv ${LDFLAGS}"
+        ./configure --prefix={{tmux_path}} --enable-utf8proc &&
+                make &&
+                make install
+                chdir={{tmux_tmp_dir}}{{tmux_file_tag}}
+      become: yes
+      become_user: root
+      when: wanted_version_installed.rc == 1
+
+    - name: Register remote PATH File
+      shell: "echo $PATH"
+      register: tmux_path_out
+      become: yes
+      become_user: root
+
+
+
+#############
+
+####################################################################################################
+# pi - COMPILE TMUX SETUP
+####################################################################################################
+- hosts: raspbian
+  tags:
+    - byobu
+  vars:
+    bossjones__user: pi
+    bossjones__group: pi
+    cheatsheet_update: yes
+    byobu_version: "2.6"
+    byobu_install_method: "source"
+    byobu_path: "/usr/local/"
+    byobu_tmp_dir: "/tmp/"
+    byobu_playbook_version: "0.0.1"
+    byobu_file_tag: "byobu-{{byobu_version}}"
+    byobu_file_name: "{{byobu_file_tag}}.tar.gz"
+    byobu_base_url: "https://github.com/dustinkirkland/byobu"
+    byobu_tarball_url: "{{byobu_base_url}}{{byobu_file_name}}"
+  become: yes
+  become_method: sudo
+  # become_user: pi
+  # become_method: sudo
+  # SOURCE: https://docs.ansible.com/ansible/latest/playbooks_environment.html
+  environment:
+    SHELL: /bin/bash
+  tasks:
+    - name: Install Debian packages tmux prereqs
+      apt: pkg={{item}} state=latest update_cache=yes
+      with_items:
+        - dh-make
+      when: ansible_os_family == "Debian"
+      # become: yes
+      # become_user: root
+
+      become: yes
+      become_method: sudo
+
+    - name: Clone byobu
+      git:
+        repo: https://github.com/dustinkirkland/byobu
+        dest: "/usr/local/src/byobu"
+        version: "master"
+      become: yes
+      become_user: root
+
+      # dh-make
+
+
+    - name: Compile and install byobu
+      shell: |
+                ./debian/rules autoconf &&
+                ./configure --prefix="/usr/local" &&
+                make &&
+                make check &&
+                make install
+                chdir=/usr/local/src/byobu
+      register: byobu_compiled
+      become: yes
+      become_user: root
+
+
+####################################################################################################
+# pirate - COMPILE TMUX SETUP
+####################################################################################################
+- hosts: scarlett_cluster
+  tags:
+    - tmux
+  vars:
+    bossjones__user: pirate
+    bossjones__group: pirate
+    cheatsheet_update: yes
+    tmux_version: "2.6"
+    tmux_install_method: "source"
+    tmux_path: "/usr/local/"
+    tmux_tmp_dir: "/tmp/"
+    tmux_playbook_version: "0.0.1"
+    tmux_file_tag: "tmux-{{tmux_version}}"
+    tmux_file_name: "{{tmux_file_tag}}.tar.gz"
+    tmux_base_url: "https://github.com/tmux/tmux/releases/download/{{tmux_version}}/"
+    tmux_tarball_url: "{{tmux_base_url}}{{tmux_file_name}}"
+  become: yes
+  # become_user: pi
+  # become_method: sudo
+  # SOURCE: https://docs.ansible.com/ansible/latest/playbooks_environment.html
+  environment:
+    SHELL: /bin/bash
+  tasks:
+    - name: Install Debian packages tmux prereqs
+      apt: pkg={{item}} state=latest update_cache=yes
+      with_items:
+        - libevent-dev
+        - libncurses-dev
+        - pkg-config
+        - wget
+        - curl
+        - make
+        - gcc
+        - autoconf
+        - automake
+        - libtool
+        # - xfonts-base
+        # - xfonts-terminus
+      when: ansible_os_family == "Debian"
+      # become: yes
+      # become_user: root
+
+      become: yes
+      become_method: sudo
+
+    - name: Clone utf8proc
+      git:
+        repo: https://github.com/JuliaLang/utf8proc
+        dest: "/usr/local/src/utf8proc"
+        version: "master"
+      become: yes
+      become_user: root
+
+    - name: Compile and install utf8proc
+      shell: |
+                make &&
+                make check &&
+                make install
+                chdir=/usr/local/src/utf8proc
+      register: utf8proc_compiled
+      become: yes
+      become_user: root
+
+    - name: Checking installed version of tmux
+      shell: /usr/bin/test "$({{tmux_path}}bin/tmux -V 2> /dev/null)" = {{ tmux_version }}
+      register: wanted_version_installed
+      ignore_errors: True
+      changed_when: "wanted_version_installed.rc == 1"
+      become: yes
+      become_user: root
+
+    - name: Download tmux {{tmux_version}}
+      get_url: url={{tmux_tarball_url}} dest={{tmux_tmp_dir}}{{tmux_file_name}} timeout=120
+      when: wanted_version_installed.rc == 1
+      become: yes
+      become_user: root
+
+    - name: Unpack tmux {{tmux_version}}
+      command: tar -xzf {{tmux_file_name}} chdir={{tmux_tmp_dir}}
+      when: wanted_version_installed.rc == 1
+      become: yes
+      become_user: root
+
+    - name: Compile and install tmux {{tmux_version}}
+      shell: |
+        export LDFLAGS="-lresolv ${LDFLAGS}"
+        ./configure --prefix={{tmux_path}} --enable-utf8proc &&
+                make &&
+                make install
+                chdir={{tmux_tmp_dir}}{{tmux_file_tag}}
+      become: yes
+      become_user: root
+      when: wanted_version_installed.rc == 1
+
+    - name: Register remote PATH File
+      shell: "echo $PATH"
+      register: tmux_path_out
+      become: yes
+      become_user: root
+
+
+
+#############
+
+####################################################################################################
+# pirate - COMPILE TMUX SETUP
+####################################################################################################
+- hosts: scarlett_cluster
+  tags:
+    - byobu
+  vars:
+    bossjones__user: pirate
+    bossjones__group: pirate
+    cheatsheet_update: yes
+    byobu_version: "2.6"
+    byobu_install_method: "source"
+    byobu_path: "/usr/local/"
+    byobu_tmp_dir: "/tmp/"
+    byobu_playbook_version: "0.0.1"
+    byobu_file_tag: "byobu-{{byobu_version}}"
+    byobu_file_name: "{{byobu_file_tag}}.tar.gz"
+    byobu_base_url: "https://github.com/dustinkirkland/byobu"
+    byobu_tarball_url: "{{byobu_base_url}}{{byobu_file_name}}"
+  become: yes
+  become_method: sudo
+  # become_user: pi
+  # become_method: sudo
+  # SOURCE: https://docs.ansible.com/ansible/latest/playbooks_environment.html
+  environment:
+    SHELL: /bin/bash
+  tasks:
+    - name: Install Debian packages tmux prereqs
+      apt: pkg={{item}} state=latest update_cache=yes
+      with_items:
+        - dh-make
+      when: ansible_os_family == "Debian"
+      # become: yes
+      # become_user: root
+
+      become: yes
+      become_method: sudo
+
+    - name: Clone byobu
+      git:
+        repo: https://github.com/dustinkirkland/byobu
+        dest: "/usr/local/src/byobu"
+        version: "master"
+      become: yes
+      become_user: root
+
+      # dh-make
+
+
+    - name: Compile and install byobu
+      shell: |
+                ./debian/rules autoconf &&
+                ./configure --prefix="/usr/local" &&
+                make &&
+                make check &&
+                make install
+                chdir=/usr/local/src/byobu
+      register: byobu_compiled
+      become: yes
+      become_user: root
