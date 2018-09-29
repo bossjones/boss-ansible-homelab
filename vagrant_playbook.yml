@@ -1,17 +1,29 @@
 # ansible-playbook -i inventory-homelab/ bootstrap_office.yml --check
 # ansible-playbook -i inventory-homelab/ bootstrap_office.yml
-# ansible-playbook -i inventory-homelab/ bootstrap_office.yml --tags "scarlett_ids"
+# ansible-playbook -i inventory-homelab/ bootstrap_office.yml --tags "raspbian1"
 ---
 
 # no_log: true
 
-- hosts: raspbian hypriot
+# FIXME: NEW 9/28/2018
+- hosts: servers
   gather_facts: True
   become: yes
   become_method: sudo
   tags:
-    - raspbian
-    - hypriot
+    - servers
+  roles:
+    - role: boss-ansible-role-core
+    - role: boss-ansible-role-fact
+    - role: boss-ansible-role-environment
+
+- hosts: raspbian_servers hypriot_servers
+  gather_facts: True
+  become: yes
+  become_method: sudo
+  tags:
+    - raspbian_servers
+    - hypriot_servers
   vars:
     nginx_listen_port: 8080
 
@@ -40,7 +52,6 @@
         state: present
       become: True
       with_items:
-        # - asciidoc
         - peco
         - atop
         - bash
@@ -51,27 +62,17 @@
         - build-essential
         - ca-certificates
         - ccze
-        # - clang-3.5
         - dstat
         - elfutils
         - file
         - flex
-        # - gettext
         - git
-        # - hdparm
         - htop
         - iftop
         - iotop
         - iperf
         - iperf3
         - iproute
-        # - libaudit-dev
-        # - libdw-dev
-        # - libelf-dev
-        # - libperl-dev
-        # - libslang2-dev
-        # - libunwind8-dev
-        # - llvm-3.5
         - lsof
         - ltrace
         - make
@@ -80,7 +81,6 @@
         - net-tools
         - ngrep
         - nmap
-        # - nmon
         - ntpdate
         - perf-tools-unstable
         - perl
@@ -90,8 +90,6 @@
         - python-dev
         - ruby2.3
         - socat
-        # - software-properties-common
-        # - sslscan
         - strace
         - sysstat
         - tar
@@ -103,16 +101,15 @@
         - ncdu
         - fonts-symbola
         - ttf-ancient-fonts-symbola
-        # emoji
         - ttf-ancient-fonts
         - software-properties-common
 
-- hosts: raspbian
+- hosts: raspbian_servers
   gather_facts: True
   become: yes
   become_method: sudo
   tags:
-    - raspbian
+    - raspbian_servers
   vars:
     nginx_listen_port: 8080
 
@@ -146,82 +143,6 @@
       become: yes
       register: local_gen_results
 
-    # - name: debian | Installing Pre-Reqs
-    #   apt:
-    #     name: "{{ item }}"
-    #     state: present
-    #   become: True
-    #   with_items:
-    #     # - asciidoc
-    #     - peco
-    #     - atop
-    #     - bash
-    #     - bash-completion
-    #     - binutils-dev
-    #     - bison
-    #     - bridge-utils
-    #     - build-essential
-    #     - ca-certificates
-    #     - ccze
-    #     # - clang-3.5
-    #     - dstat
-    #     - elfutils
-    #     - file
-    #     - flex
-    #     # - gettext
-    #     - git
-    #     # - hdparm
-    #     - htop
-    #     - iftop
-    #     - iotop
-    #     - iperf
-    #     - iperf3
-    #     - iproute
-    #     # - libaudit-dev
-    #     # - libdw-dev
-    #     # - libelf-dev
-    #     # - libperl-dev
-    #     # - libslang2-dev
-    #     # - libunwind8-dev
-    #     # - llvm-3.5
-    #     - lsof
-    #     - ltrace
-    #     - make
-    #     - mercurial
-    #     - mtr
-    #     - net-tools
-    #     - ngrep
-    #     - nmap
-    #     # - nmon
-    #     - ntpdate
-    #     - perf-tools-unstable
-    #     - perl
-    #     - procps
-    #     - psmisc
-    #     - pv
-    #     - python-dev
-    #     - ruby2.3
-    #     - socat
-    #     # - software-properties-common
-    #     # - sslscan
-    #     - strace
-    #     - sysstat
-    #     - tar
-    #     - tcpdump
-    #     - tree
-    #     - vim
-    #     - wget
-    #     - mlocate
-    #     - ncdu
-    #     - fonts-symbola
-    #     - ttf-ancient-fonts-symbola
-    #     # emoji
-    #     - ttf-ancient-fonts
-    #     - software-properties-common
-
-        # apt-get -y install linux-headers-$(uname -r)
-        # cd /usr/local/bin && wget https://github.com/direnv/direnv/releases/download/v2.13.3/direnv.linux-arm && mv direnv.linux-arm direnv && chmod +x direnv
-
     # SOURCE: https://www.bitpi.co/2015/02/11/how-to-change-raspberry-pis-swapfile-size-on-rasbian/
     - name: "sed CONF_SWAPSIZE=1024 /etc/dphys-swapfile"
       shell: |
@@ -254,10 +175,10 @@
   vars:
     netdata_registry_enabled: True
     netdata_registry_to_announce: "http://{{ netdata_stream_master_node }}:{{ netdata_default_port }}"
-    pri_domain_name: scarlett-office.local
+    pri_domain_name: hyenalab.home
     netdata_stream_enabled: True
-    netdata_stream_api_key: 70C1DAF7-C0F5-4D07-908F-7C5CAB0A0236
-    netdata_stream_master_node: 192.168.1.191
+    netdata_stream_api_key: C1973D48-DC9A-47F8-BD97-364AD686DBFE
+    netdata_stream_master_node: 192.168.33.101
     nginx_listen_port: 8080
   roles:
     # - role: boss-ansible-role-swapfile
@@ -278,12 +199,7 @@
         - 3.ubuntu.pool.ntp.org
 
       # Defines your primary domain name (FQDN)
-      ntp_pri_domain_name: 'localdomain'
-
-      # Defines internal ntp servers for clients to poll
-      # ntp_servers:
-      #  - 'ntp1.{{ ntp_pri_domain_name }}'
-      #  - 'ntp2.{{ ntp_pri_domain_name }}'
+      ntp_pri_domain_name: 'hyenalab.home'
 
     - role: ansible-nginx
       nginx_listen_port: 8080
@@ -293,8 +209,8 @@
     - role: ansible-motd
     - role: boss-ansible-role-debug
     # SOURCE: https://loganmarchione.com/2016/11/ubiquiti-unifi-controller-setup-raspberry-pi-3/
-    - role: ansible-role-unifi-controller
-      unifi_controller_jvm_xmx: 512M
+    # - role: ansible-role-unifi-controller
+    #   unifi_controller_jvm_xmx: 512M
     - role: ansible-logrotate
       # defaults file for ansible-logrotate
       # Defines if you want your log files compressed
@@ -412,7 +328,7 @@
           server {
               listen *:8081;
               # the virtual host name of this
-              server_name netdata.example.com;
+              server_name netdata.homelab.home;
 
               location / {
                   proxy_set_header X-Forwarded-Host $host;
@@ -579,21 +495,21 @@
 # Enable netdata etc on our ids server as well
 ##########################################################################################################################################
 
-- hosts: scarlett_ids
+- hosts: raspbian1
   gather_facts: True
   become: yes
   become_method: sudo
   tags:
-    - scarlett_ids
+    - raspbian1
   vars:
-    bossjones__user: "pi"
-    bossjones__group: "pi"
+    bossjones__user: "vagrant"
+    bossjones__group: "vagrant"
     netdata_registry_enabled: False
     netdata_registry_to_announce: "http://{{ netdata_stream_master_node }}:{{ netdata_default_port }}"
-    pri_domain_name: scarlett-ids.local
+    pri_domain_name: raspbian.hyenalab.home
     netdata_stream_enabled: True
-    netdata_stream_api_key: 70C1DAF7-C0F5-4D07-908F-7C5CAB0A0236
-    netdata_stream_master_node: 192.168.1.191
+    netdata_stream_api_key: C1973D48-DC9A-47F8-BD97-364AD686DBFE
+    netdata_stream_master_node: 192.168.33.101
     nginx_listen_port: 8080
 
   roles:
@@ -615,7 +531,7 @@
         - 3.ubuntu.pool.ntp.org
 
       # Defines your primary domain name (FQDN)
-      ntp_pri_domain_name: 'localdomain'
+      ntp_pri_domain_name: 'hyenalab.home'
 
       # Defines internal ntp servers for clients to poll
       # ntp_servers:
@@ -719,7 +635,7 @@
           server {
               listen *:8081;
               # the virtual host name of this
-              server_name netdata.example.com;
+              server_name netdata.homelab.home;
 
               location / {
                   proxy_set_header X-Forwarded-Host $host;
@@ -885,13 +801,13 @@
 ####################################################################################################
 # # sysctl SETUP(VSCode requirement)
 ####################################################################################################
-- hosts: rpi
+- hosts: all_servers
   gather_facts: True
   tags:
     - sysctl
   vars:
-    bossjones__user: "pi"
-    bossjones__group: "pi"
+    bossjones__user: "vagrant"
+    bossjones__group: "vagrant"
   become: yes
   # become_method: sudo
   # SOURCE: https://docs.ansible.com/ansible/latest/playbooks_environment.html
@@ -921,7 +837,7 @@
 # datadog install
 ##################################################################################
 
-- hosts: raspbian
+- hosts: raspbian_servers
   gather_facts: True
   become: yes
   become_method: sudo
@@ -1050,7 +966,7 @@
     #   datadog_agent_allow_downgrade: false
     #   datadog_agent_version: "1:6.0.0-1"
     #   datadog_config:
-    #     tags: "homelab, raspbian"
+    #     tags: "homelab, raspbian_servers"
     #     log_level: INFO
     #     apm_enabled: "false" # has to be set as a string
     #     # logs related config
@@ -1114,12 +1030,12 @@
 ####################################################################################################
 # pi - COMPILE TMUX SETUP
 ####################################################################################################
-- hosts: raspbian
+- hosts: raspbian_servers
   tags:
     - tmux
   vars:
-    bossjones__user: pi
-    bossjones__group: pi
+    bossjones__user: vagrant
+    bossjones__group: vagrant
     cheatsheet_update: yes
     tmux_version: "2.6"
     tmux_install_method: "source"
@@ -1220,12 +1136,12 @@
 ####################################################################################################
 # pi - COMPILE TMUX SETUP
 ####################################################################################################
-- hosts: raspbian
+- hosts: raspbian_servers
   tags:
     - byobu
   vars:
-    bossjones__user: pi
-    bossjones__group: pi
+    bossjones__user: vagrant
+    bossjones__group: vagrant
     cheatsheet_update: yes
     byobu_version: "2.6"
     byobu_install_method: "source"
@@ -1238,9 +1154,6 @@
     byobu_tarball_url: "{{byobu_base_url}}{{byobu_file_name}}"
   become: yes
   become_method: sudo
-  # become_user: "{{bossjones__user}}"
-  # become_method: sudo
-  # SOURCE: https://docs.ansible.com/ansible/latest/playbooks_environment.html
   environment:
     SHELL: /bin/bash
   tasks:
@@ -1249,8 +1162,6 @@
       with_items:
         - dh-make
       when: ansible_os_family == "Debian"
-      # become: yes
-      # become_user: root
 
       become: yes
       become_method: sudo
@@ -1262,9 +1173,6 @@
         version: "master"
       become: yes
       become_user: root
-
-      # dh-make
-
 
     - name: Compile and install byobu
       shell: |
@@ -1283,12 +1191,12 @@
 ####################################################################################################
 # pirate - COMPILE TMUX SETUP
 ####################################################################################################
-- hosts: scarlett_cluster
+- hosts: hypriot_servers
   tags:
     - tmux
   vars:
-    bossjones__user: pirate
-    bossjones__group: pirate
+    bossjones__user: vagrant
+    bossjones__group: vagrant
     cheatsheet_update: yes
     tmux_version: "2.6"
     tmux_install_method: "source"
@@ -1319,11 +1227,7 @@
         - autoconf
         - automake
         - libtool
-        # - xfonts-base
-        # - xfonts-terminus
       when: ansible_os_family == "Debian"
-      # become: yes
-      # become_user: root
 
       become: yes
       become_method: sudo
@@ -1391,12 +1295,12 @@
 ####################################################################################################
 # pirate - COMPILE TMUX SETUP
 ####################################################################################################
-- hosts: scarlett_cluster
+- hosts: hypriot_servers
   tags:
     - byobu
   vars:
-    bossjones__user: pirate
-    bossjones__group: pirate
+    bossjones__user: vagrant
+    bossjones__group: vagrant
     cheatsheet_update: yes
     byobu_version: "2.6"
     byobu_install_method: "source"
@@ -1454,12 +1358,12 @@
 ####################################################################################################
 # pirate - COMPILE nvm SETUP
 ####################################################################################################
-- hosts: scarlett_cluster
+- hosts: hypriot_servers
   tags:
     - nvm
   vars:
-    bossjones__user: pirate
-    bossjones__group: pirate
+    bossjones__user: vagrant
+    bossjones__group: vagrant
     node_version: '8'
   become: yes
   become_method: sudo
@@ -1555,14 +1459,14 @@
       become_user: "{{bossjones__user}}"
 
 ####################################################################################################
-# raspbian - COMPILE nvm SETUP
+# raspbian_servers - COMPILE nvm SETUP
 ####################################################################################################
-- hosts: raspbian
+- hosts: raspbian_servers
   tags:
     - nvm
   vars:
-    bossjones__user: pi
-    bossjones__group: pi
+    bossjones__user: vagrant
+    bossjones__group: vagrant
     node_version: '8'
   become: yes
   become_method: sudo
