@@ -1,86 +1,126 @@
 # https://gist.github.com/gnarf/b103e77f37236ca72d8e
 :vms:
-  control:
-    :hostname: "control"
+  scarlett-cluster1:
+    :hostname: "scarlett-cluster1"
     :ip: "192.168.33.100"
-    :ram: 512
-    :cpu: 1
+    :ram: 1024
+    :cpu: 2
+    :box: "debian/stretch64"
 
-  raspbian1:
-    :hostname: "raspbian1"
+  scarlett-cluster2:
+    :hostname: "scarlett-cluster2"
     :ip: "192.168.33.101"
-    :ram: 512
-    :cpu: 1
+    :ram: 1024
+    :cpu: 2
+    :box: "debian/stretch64"
 
-  raspbian2:
-    :hostname: "raspbian2"
+  scarlett-cluster3:
+    :hostname: "scarlett-cluster3"
     :ip: "192.168.33.102"
-    :ram: 512
-    :cpu: 1
+    :ram: 1024
+    :cpu: 2
+    :box: "debian/stretch64"
 
-  hypriot1:
-    :hostname: "hypriot1"
+  scarlett-cluster4:
+    :hostname: "scarlett-cluster4"
     :ip: "192.168.33.103"
-    :ram: 512
-    :cpu: 1
+    :ram: 1024
+    :cpu: 2
+    :box: "debian/stretch64"
 
-  hypriot2:
-    :hostname: "hypriot2"
+  scarlett-ids:
+    :hostname: "scarlett-ids"
     :ip: "192.168.33.104"
-    :ram: 512
+    :ram: 1024
+    :cpu: 2
+    :box: "debian/stretch64"
 
-  home_elk:
-    :hostname: "home_elk"
+  scarlett-office:
+    :hostname: "scarlett-office"
     :ip: "192.168.33.105"
-    :ram: 2048
+    :ram: 1024
+    :cpu: 2
+    :box: "debian/stretch64"
+
+
+  pine64:
+    :hostname: "pine64"
+    :ip: "192.168.33.106"
+    :ram: 1024
+    :cpu: 2
+    :box: "debian/stretch64"
 
 :groups:
-  raspbian1:
-    - raspbian1
-  raspbian2:
-    - raspbian2
+  scarlett-cluster1:
+    - scarlett-cluster1
+  scarlett-cluster2:
+    - scarlett-cluster2
+  scarlett-cluster3:
+    - scarlett-cluster3
+  scarlett-cluster4:
+    - scarlett-cluster4
+  scarlett-cluster:
+    - scarlett-cluster1
+    - scarlett-cluster2
+    - scarlett-cluster3
+    - scarlett-cluster4
+  scarlett_cluster:
+    - scarlett-cluster1
+    - scarlett-cluster2
+    - scarlett-cluster3
+    - scarlett-cluster4
   raspbian_servers:
-    - raspbian1
-    - raspbian2
+    - scarlett-cluster2
+    - scarlett-cluster3
   raspbians_centralized:
-    - raspbian1
-    - raspbian2
+    - scarlett-cluster2
+    - scarlett-cluster3
   raspbian:
-    - raspbian1
-    - raspbian2
-  control:
-    - control
-  hypriot1:
-    - hypriot1
-  hypriot2:
-    - hypriot2
+    - scarlett-office
+    - scarlett-ids
+  scarlett-ids:
+    - scarlett-ids
+  scarlett_ids:
+    - scarlett-ids
   hypriots:
-    - hypriot1
-    - hypriot2
+    - scarlett-cluster4
   hypriot_servers:
-    - hypriot1
-    - hypriot2
-  home_elk:
-    - home_elk
+    - scarlett-cluster4
+  hypriot:
+    - scarlett-cluster2
+    - scarlett-cluster3
+    - scarlett-cluster1
+    - scarlett-cluster4
+  scarlett-office:
+    - scarlett-office
+  scarlett_office:
+    - scarlett-office
   servers:
-    - raspbian1
-    - raspbian2
-    - control
-    - hypriot1
-    - hypriot2
-    - home_elk
+    - scarlett-cluster2
+    - scarlett-cluster3
+    - scarlett-cluster1
+    - scarlett-cluster4
+    - scarlett-ids
+    - scarlett-office
+  rpi:
+    - scarlett-cluster2
+    - scarlett-cluster3
+    - scarlett-cluster1
+    - scarlett-cluster4
+    - scarlett-ids
+    - scarlett-office
   all_servers:
-    - control
-    - raspbian1
-    - raspbian2
-    - hypriot1
-    - hypriot2
-    - home_elk
+    - scarlett-cluster1
+    - scarlett-cluster2
+    - scarlett-cluster3
+    - scarlett-cluster4
+    - scarlett-ids
+    - scarlett-office
   netdata_registry:
-    - raspbian1
+    - scarlett-office
   netdata_slaves:
-    - raspbian2
-    - hypriot1
-    - hypriot2
-    - home_elk
-    - control
+    - scarlett-cluster1
+    - scarlett-cluster2
+    - scarlett-cluster3
+    - scarlett-cluster4
+    - scarlett-ids

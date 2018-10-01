@@ -1,6 +1,6 @@
 # ansible-playbook -i inventory-homelab/ bootstrap_office.yml --check
 # ansible-playbook -i inventory-homelab/ bootstrap_office.yml
-# ansible-playbook -i inventory-homelab/ bootstrap_office.yml --tags "raspbian1"
+# ansible-playbook -i inventory-homelab/ bootstrap_office.yml --tags "scarlett_ids"
 ---
 
 # no_log: true
@@ -17,13 +17,13 @@
     - role: boss-ansible-role-fact
     - role: boss-ansible-role-environment
 
-- hosts: raspbian_servers hypriot_servers
+- hosts: raspbian hypriot
   gather_facts: True
   become: yes
   become_method: sudo
   tags:
-    - raspbian_servers
-    - hypriot_servers
+    - raspbian
+    - hypriot
   vars:
     nginx_listen_port: 8080
 
@@ -104,16 +104,22 @@
         - ttf-ancient-fonts
         - software-properties-common
 
-- hosts: raspbian_servers
+- hosts: raspbian
   gather_facts: True
   become: yes
   become_method: sudo
   tags:
-    - raspbian_servers
+    - raspbian
   vars:
     nginx_listen_port: 8080
 
   pre_tasks:
+    - name: lookup architecture
+      set_fact: architecture="{{ ((ansible_architecture|truncate(3,true,'')) == 'arm') | ternary('ARM','X86') }}"
+
+    - name: show architecture
+      debug: msg="architecture is set to {{ architecture }}"
+
 
     # Update apt packages
     - name: Update apt packages
@@ -132,16 +138,19 @@
       apt:
         name=rpi-update
         state=present
+      when: ansible_os_family == "Debian" and architecture == "ARM"
 
     - name: run rpi-update
       shell: 'DEBIAN_FRONTEND=noninteractive rpi-update'
       become: yes
       register: rpi_update_results
+      when: ansible_os_family == "Debian" and architecture == "ARM"
 
     - name: 'run locale-gen en_US.UTF-8'
       shell: 'DEBIAN_FRONTEND=noninteractive locale-gen en_US.UTF-8'
       become: yes
       register: local_gen_results
+      when: ansible_os_family == "Debian" and architecture == "ARM"
 
     # SOURCE: https://www.bitpi.co/2015/02/11/how-to-change-raspberry-pis-swapfile-size-on-rasbian/
     - name: "sed CONF_SWAPSIZE=1024 /etc/dphys-swapfile"
@@ -178,7 +187,7 @@
     pri_domain_name: hyenalab.home
     netdata_stream_enabled: True
     netdata_stream_api_key: C1973D48-DC9A-47F8-BD97-364AD686DBFE
-    netdata_stream_master_node: 192.168.33.101
+    netdata_stream_master_node: 192.168.33.104
     nginx_listen_port: 8080
   roles:
     # - role: boss-ansible-role-swapfile
@@ -495,12 +504,12 @@
 # Enable netdata etc on our ids server as well
 ##########################################################################################################################################
 
-- hosts: raspbian1
+- hosts: scarlett_ids
   gather_facts: True
   become: yes
   become_method: sudo
   tags:
-    - raspbian1
+    - scarlett_ids
   vars:
     bossjones__user: "vagrant"
     bossjones__group: "vagrant"
@@ -509,7 +518,7 @@
     pri_domain_name: raspbian.hyenalab.home
     netdata_stream_enabled: True
     netdata_stream_api_key: C1973D48-DC9A-47F8-BD97-364AD686DBFE
-    netdata_stream_master_node: 192.168.33.101
+    netdata_stream_master_node: 192.168.33.104
     nginx_listen_port: 8080
 
   roles:
@@ -801,7 +810,7 @@
 ####################################################################################################
 # # sysctl SETUP(VSCode requirement)
 ####################################################################################################
-- hosts: all_servers
+- hosts: servers
   gather_facts: True
   tags:
     - sysctl
@@ -837,7 +846,7 @@
 # datadog install
 ##################################################################################
 
-- hosts: raspbian_servers
+- hosts: raspbian
   gather_facts: True
   become: yes
   become_method: sudo
@@ -966,7 +975,7 @@
     #   datadog_agent_allow_downgrade: false
     #   datadog_agent_version: "1:6.0.0-1"
     #   datadog_config:
-    #     tags: "homelab, raspbian_servers"
+    #     tags: "homelab, raspbian"
     #     log_level: INFO
     #     apm_enabled: "false" # has to be set as a string
     #     # logs related config
@@ -1030,7 +1039,7 @@
 ####################################################################################################
 # pi - COMPILE TMUX SETUP
 ####################################################################################################
-- hosts: raspbian_servers
+- hosts: raspbian
   tags:
     - tmux
   vars:
@@ -1136,7 +1145,7 @@
 ####################################################################################################
 # pi - COMPILE TMUX SETUP
 ####################################################################################################
-- hosts: raspbian_servers
+- hosts: raspbian
   tags:
     - byobu
   vars:
@@ -1191,7 +1200,7 @@
 ####################################################################################################
 # pirate - COMPILE TMUX SETUP
 ####################################################################################################
-- hosts: hypriot_servers
+- hosts: hypriot
   tags:
     - tmux
   vars:
@@ -1295,7 +1304,7 @@
 ####################################################################################################
 # pirate - COMPILE TMUX SETUP
 ####################################################################################################
-- hosts: hypriot_servers
+- hosts: hypriot
   tags:
     - byobu
   vars:
@@ -1358,7 +1367,7 @@
 ####################################################################################################
 # pirate - COMPILE nvm SETUP
 ####################################################################################################
-- hosts: hypriot_servers
+- hosts: hypriot
   tags:
     - nvm
   vars:
@@ -1459,9 +1468,9 @@
       become_user: "{{bossjones__user}}"
 
 ####################################################################################################
-# raspbian_servers - COMPILE nvm SETUP
+# raspbian - COMPILE nvm SETUP
 ####################################################################################################
-- hosts: raspbian_servers
+- hosts: raspbian
   tags:
     - nvm
   vars:
