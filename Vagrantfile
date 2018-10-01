@@ -200,7 +200,7 @@ Vagrant.configure(2) do |config|
         ansible.extra_vars = {
           deploy_env: 'vagrant'
         }
-        ansible.skip_tags = %w[datadog nvm]
+        ansible.skip_tags = %w[datadog nvm unifi]
         # ansible.skip_tags = %w[bootstrap]
         ansible.raw_arguments = ["--forks=10"]
       end

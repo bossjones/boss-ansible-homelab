@@ -157,10 +157,12 @@
       shell: |
         sed -i 's,CONF_SWAPSIZE=.*,CONF_SWAPSIZE=2048,g' /etc/dphys-swapfile;dphys-swapfile setup
       become: yes
+      when: ansible_os_family == "Debian" and architecture == "ARM"
 
     - name: start and enable dphys-swapfile
       become: yes
       service: name=dphys-swapfile state=restarted enabled=yes
+      when: ansible_os_family == "Debian" and architecture == "ARM"
 
     - name: remove apt-key
       apt_key:
@@ -314,6 +316,8 @@
       shell: 'apt-mark hold unifi'
       become: yes
       register: global_linenumber
+      tags:
+      - unifi
 
       # sudo cp -p /lib/systemd/system/unifi.service /etc/systemd/system
       # sudo sed -i '/^\[Service\]$/a Environment=JAVA_HOME=/usr/lib/jvm/jdk-8-oracle-arm32-vfp-hflt' /etc/systemd/system/unifi.service
