@@ -28,3 +28,6 @@ scarlett_ids
 [raspbian:children]
 scarlett_office
 scarlett_ids
+
+[hypriot:children]
+scarlett_cluster

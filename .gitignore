@@ -26,3 +26,8 @@ roles/ansible-role-unifi-controller/
 roles/lifeofguenter.oracle-java/
 vault_password
 roles/ansible-datadog/
+roles/*
+!roles/.gitkeep
+.vagrant/
+*.log
+*.retry

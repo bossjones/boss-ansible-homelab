@@ -1,0 +1,86 @@
+# https://gist.github.com/gnarf/b103e77f37236ca72d8e
+:vms:
+  control:
+    :hostname: "control"
+    :ip: "192.168.33.100"
+    :ram: 512
+    :cpu: 1
+
+  raspbian1:
+    :hostname: "raspbian1"
+    :ip: "192.168.33.101"
+    :ram: 512
+    :cpu: 1
+
+  raspbian2:
+    :hostname: "raspbian2"
+    :ip: "192.168.33.102"
+    :ram: 512
+    :cpu: 1
+
+  hypriot1:
+    :hostname: "hypriot1"
+    :ip: "192.168.33.103"
+    :ram: 512
+    :cpu: 1
+
+  hypriot2:
+    :hostname: "hypriot2"
+    :ip: "192.168.33.104"
+    :ram: 512
+
+  home_elk:
+    :hostname: "home_elk"
+    :ip: "192.168.33.105"
+    :ram: 2048
+
+:groups:
+  raspbian1:
+    - raspbian1
+  raspbian2:
+    - raspbian2
+  raspbian_servers:
+    - raspbian1
+    - raspbian2
+  raspbians_centralized:
+    - raspbian1
+    - raspbian2
+  raspbian:
+    - raspbian1
+    - raspbian2
+  control:
+    - control
+  hypriot1:
+    - hypriot1
+  hypriot2:
+    - hypriot2
+  hypriots:
+    - hypriot1
+    - hypriot2
+  hypriot_servers:
+    - hypriot1
+    - hypriot2
+  home_elk:
+    - home_elk
+  servers:
+    - raspbian1
+    - raspbian2
+    - control
+    - hypriot1
+    - hypriot2
+    - home_elk
+  all_servers:
+    - control
+    - raspbian1
+    - raspbian2
+    - hypriot1
+    - hypriot2
+    - home_elk
+  netdata_registry:
+    - raspbian1
+  netdata_slaves:
+    - raspbian2
+    - hypriot1
+    - hypriot2
+    - home_elk
+    - control
