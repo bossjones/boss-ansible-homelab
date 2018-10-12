@@ -46,30 +46,43 @@
 # exportfs -o fsid=0,insecure,no_subtree_check gss/krb5p:/exports e
 # exportfs -o rw,nohide,insecure,no_subtree_check gss/krb5p:/exports/opt exportfs -o rw,nohide,insecure,no_subtree_check gss/krb5p:/exports/etc
 
-# # nfs server
-# - hosts: "nfs"
-#   become: True
-#   become_user: root
-#   gather_facts: True
-#   vars:
-#     nfs_mode: 'front'
-#     # nfs_exports: [{path: "/var/nfs", export: "*(fsid=0,rw,async,no_root_squash,no_subtree_check,insecure)"}]
-#     nfs_exports: [{path: "/var/nfs", bind: "/dev/sdb", export: "*(fsid=0,rw,sync,crossmnt,subtree_check,no_root_squash,insecure)"}]
+# nfs server
+- hosts: "nfs"
+  become: True
+  become_user: root
+  gather_facts: True
+  tags:
+  - nfs
+  vars:
+    nfs_mode: 'front'
+    # nfs_exports: [{path: "/var/nfs", export: "*(fsid=0,rw,async,no_root_squash,no_subtree_check,insecure)"}]
+    # nfs_exports: [{path: "/var/nfs", bind: "/dev/sdb", export: "*(fsid=0,rw,sync,crossmnt,subtree_check,no_root_squash,insecure)"}]
+    nfs_exports: [{path: "/pf9", bind: "/dev/sdb", export: "*(rw,sync,fsid=0,crossmnt,no_subtree_check)"}]
+    extra_local_paths:
+    - /pf9
+    - /pf9/instances
+  roles:
+  - role: 'grycap.nfs'
 
-#   roles:
-#   - role: 'grycap.nfs'
+# NOTE: Before mounting the NFS share, we need to check the available shares on the NFS server. To do that,  run the following command on the client-server.
 
-# # nfs clients
-# - hosts: "nfs_clients"
-#   become: True
-#   become_user: root
-#   gather_facts: True
-#   vars:
-#     nfs_mode: 'wn'
-#     nfs_client_imports: [{ local: "/mnt/shared", remote: "/var/nfs", server_host: "{{ groups['managers'] | first }}" }]
-#     # noatime,nosuid,hard,intr,proto=tcp,port=2049,_netdev   0   0
-#   roles:
-#   - role: 'grycap.nfs'
+# [root@client ~]# showmount -e 192.168.12.5
+# Export list for 192.168.12.5:
+# /nfsfileshare 192.168.12.7
+
+# nfs clients
+- hosts: "nfs_clients"
+  become: True
+  become_user: root
+  gather_facts: True
+  tags:
+  - nfs
+  vars:
+    nfs_mode: 'wn'
+    nfs_client_imports: [{ local: "/mnt/nfs", remote: "/pf9", server_host: "{{ groups['managers'] | first }}", opts: "defaults,nofail,x-systemd.automount", fstype: "nfs" }]
+    # noatime,nosuid,hard,intr,proto=tcp,port=2049,_netdev   0   0
+  roles:
+  - role: 'grycap.nfs'
 
 
 # - hosts: "swarm"

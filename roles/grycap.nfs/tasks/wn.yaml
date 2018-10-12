@@ -10,9 +10,63 @@
   - name: Ensure rpcbind is running
     service: name=rpcbind state=started enabled=yes
 
+  - name: "Ensure directories override systemd units nfs-idmap and nfs-lock"
+    file: 'path="{{ item }}" state=directory owner=root group=root'
+    with_items:
+    - '/usr/lib/systemd/system/nfs-idmap.service.d'
+    - '/usr/lib/systemd/system/nfs-lock.service.d'
+
+  # FIX: https://unix.stackexchange.com/questions/211688/cannot-start-nfs-in-centos-7-failed-to-issue-method-call-no-such-file-or-direc
+
+  - name: "nfs-idmap override.conf"
+    template:
+      src: "nfs-idmap.override.conf.j2"
+      dest: "/usr/lib/systemd/system/nfs-idmap.service.d/override.conf"
+
+  - name: "nfs-lock override.conf"
+    template:
+      src: "nfs-lock.override.conf.j2"
+      dest: "/usr/lib/systemd/system/nfs-lock.service.d/override.conf"
+
+  - name: "[CONFIGURE] - Reload systemd configuration"
+    command: "systemctl daemon-reload"
+
+  - name: "Restart nfs-idmap service"
+    service:
+      name: nfs-idmap
+      state: started
+      enabled: yes
+
+  - name: "Restart rpc-statd service"
+    service:
+      name: rpc-statd
+      state: started
+      enabled: yes
+
+  - name: "Restart rpcbind.socket service"
+    service:
+      name: rpcbind.socket
+      state: started
+      enabled: yes
+#     192  vim /usr/lib/systemd/system/nfs-idmap.service
+#   193  ls  /etc/systemd/system/
+#   194  mkdir /etc/systemd/system/nfs-idmap.service.d/
+#   195  vim /etc/systemd/system/nfs-idmap.service.d/override.conf
+#   196  mkdir /etc/systemd/system/nfs-lock.service.d/
+#   197  vim /etc/systemd/system/nfs-lock.service.d/override.conf
+#   198  systemctl start rpcbind
+#   199  systemctl enable rpcbind
+#   200  systemctl --help | grep reload
+# ───────────────────────────────────────────────────
+
   - name: "Ensure directories to export exist: item.local"
     file: 'path="{{ item.local }}" state=directory owner=nobody group=nobody'
     with_items: "{{ nfs_client_imports }}"
+
+  - name: "Ensure directories to export exist: item.remote"
+    file: 'path="{{ item.remote }}" state=directory owner=nobody group=nobody'
+    with_items: "{{ nfs_client_imports }}"
+
 
   - name: mount the shared directories
     mount:
@@ -20,7 +74,8 @@
       src: "{{ item.server_host }}:{{ item.remote }}"
       state: present
       fstype: nfs4
-      opts: 'proto=tcp,port=2049,_netdev,noatime,nosuid,nodev,hard,intr'
+      # opts: 'proto=tcp,port=2049,_netdev,noatime,nosuid,nodev,hard,intr'
+      opts: "{{ item.opts }}"
     with_items: "{{ nfs_client_imports }}"
 
 # SOURCE: https://docs.debops.org/en/master/ansible/roles/debops.nfs_server/getting-started.html
