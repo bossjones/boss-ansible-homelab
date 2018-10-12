@@ -1,0 +1,14 @@
+---
+
+- hosts: "{{ myhosts }}"
+  become: True
+  become_user: root
+  # vars:
+  #   myhosts: swarm
+  #   action: install
+  #   docker_use_lvm: True
+  #   docker_pvnane: "/dev/sdb"
+  #   docker_pvname: "/dev/sdb"
+  roles:
+    - { role: docker }
+

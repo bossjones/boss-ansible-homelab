@@ -1,0 +1,18 @@
+---
+
+- hosts: "{{ myhosts }}"
+  become: True
+  become_user: root
+  vars:
+    traefik_loglevel: DEBUG
+    traefik_debug: True
+    traefik_webui_port: 8080
+    traefik_version: latest
+    traefik_stack_name: traefik
+    traefik_https: False
+    traefik_domain: "scarlettlab.home"
+  environment:
+    TRAEFIX_CONF_VERSION: 5
+  roles:
+    - { role: ansible-role-traefik-swarm }
+

@@ -1,0 +1,29 @@
+---
+  - name: update repositories cache and install NFS
+    apt: name=nfs-common update_cache=yes cache_valid_time=3600
+    when: "ansible_os_family == 'Debian'"
+
+  - name: update repositories cache and install NFS
+    yum: name=nfs-utils
+    when: "ansible_os_family == 'RedHat'"
+
+  - name: Ensure rpcbind is running
+    service: name=rpcbind state=started enabled=yes
+
+  - name: "Ensure directories to export exist: item.local"
+    file: 'path="{{ item.local }}" state=directory owner=nobody group=nobody'
+    with_items: "{{ nfs_client_imports }}"
+
+  - name: mount the shared directories
+    mount:
+      name: "{{ item.local }}"
+      src: "{{ item.server_host }}:{{ item.remote }}"
+      state: present
+      fstype: nfs4
+      opts: 'proto=tcp,port=2049,_netdev,noatime,nosuid,nodev,hard,intr'
+    with_items: "{{ nfs_client_imports }}"
+
+# SOURCE: https://docs.debops.org/en/master/ansible/roles/debops.nfs_server/getting-started.html
+# mkdir -p /media/nfs/shared
+# mount -t nfs4 -o proto=tcp,port=2049,_netdev hostname:/shared /media/nfs/shared
+# noatime,nosuid,hard,intr,proto=tcp,port=2049,_netdev

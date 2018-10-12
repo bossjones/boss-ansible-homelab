@@ -1,0 +1,47 @@
+---
+
+# - hosts: "nfs"
+#   become: True
+#   become_user: root
+#   gather_facts: True
+#   vars:
+#     nfsserver: "{{ groups['managers'] | first }}"
+#   roles:
+#     - role: geerlingguy.nfs
+#       nfspath: "/var/shared/folder"
+#       nfsmount: "/mnt/shared"
+#       # rsize=8192,wsize=8192,timeo=15,hard,intr
+#       # sync: This option forces NFS to write changes to disk before replying. This results in a more stable and consistent environment, since the reply reflects the actual state of the remote volume.
+#       # nosubtreecheck: This option prevents subtree checking, which is a process where the host must check whether the file is actually still available in the exported tree for every request. This can cause many problems when a file is renamed while the client has it opened. In almost all cases, it is better to disable subtree checking.
+#       # norootsquash: By default, NFS translates requests from a root user remotely into a non-privileged user on the server. This was supposed to be a security feature by not allowing a root account on the client to use the filesystem of the host as root. This directive disables this for certain shares.
+#       nfs_exports: ["/var/shared/folder *(rw,fsid=0,sync,insecure,crossmnt,no_subtree_check,all_squash,anonuid=1000,anongid=1000)"]
+
+
+# # Type of node to install: front or wn
+# nfs_mode: front
+# # Shared directories to export ( line to add to the /etc/exports file )
+# nfs_exports: ""
+# # Shared directories to mount
+# nfs_client_imports: ""
+
+# nfs server
+- hosts: "nfs"
+  become: True
+  become_user: root
+  gather_facts: True
+  vars:
+    nfs_mode: 'front'
+    nfs_exports: [{path: "/var/nfs", export: "*(fsid=0,rw,async,no_root_squash,no_subtree_check,insecure)"}]
+  roles:
+  - role: 'grycap.nfs'
+
+# nfs clients
+- hosts: "nfs"
+  become: True
+  become_user: root
+  gather_facts: True
+  vars:
+    nfs_mode: 'wn'
+    nfs_client_imports: [{ local: "/mnt/shared", remote: "/var/nfs", server_host: "{{ groups['managers'] | first }}" }]
+  roles:
+  - role: 'grycap.nfs'

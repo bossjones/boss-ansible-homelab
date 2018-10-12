@@ -1,0 +1,13 @@
+---
+
+- hosts: "{{ myhosts }}"
+  become: True
+  become_user: root
+  tasks:
+    - name: "[DOCKER] - docker kill"
+      shell: "docker kill $(docker ps --no-trunc | grep titpetric/netdata | awk '{print $1}')"
+      tags: docker
+      register: register_docker_kill
+
+    - name: '[DEBUG - DOCKER] docker kill'
+      debug: msg="{{register_docker_kill}}"

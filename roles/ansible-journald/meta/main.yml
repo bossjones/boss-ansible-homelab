@@ -1,0 +1,12 @@
+galaxy_info:
+  author: Guilherme Oki
+  description: Enforce configuration of a journald instance
+  company: Stone Pagamentos S.A.
+  license: MIT
+  min_ansible_version: 2.1
+  platforms:
+  - name: EL
+    versions:
+    - 7
+  galaxy_tags:
+    - journald

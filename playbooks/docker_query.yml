@@ -1,0 +1,13 @@
+---
+
+- hosts: "{{ myhosts }}"
+  become: True
+  become_user: root
+  tasks:
+    - name: "[DOCKER] - ps"
+      shell: docker ps
+      tags: docker
+      register: docker_ps
+
+    - name: '[DEBUG - DOCKER] docker ps'
+      debug: msg="{{docker_ps}}"
