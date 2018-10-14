@@ -319,6 +319,11 @@
   roles:
     - { role: ansible-journald }
 
+# execute 'validate_config' do
+#   command "rsyslogd -N 1 -f #{node['rsyslog']['config_prefix']}/rsyslog.conf"
+#   action  :nothing
+# end
+
 - hosts: "rsyslog_masters"
   become: True
   become_user: root

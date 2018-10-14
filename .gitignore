@@ -45,4 +45,5 @@ roles/*
 !roles/telegraf
 !roles/git
 !roles/docker
+!roles/pabloguerino.rsyslog
 *.retry
