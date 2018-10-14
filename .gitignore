@@ -45,3 +45,4 @@ roles/*
 !roles/telegraf
 !roles/git
 !roles/docker
+*.retry
