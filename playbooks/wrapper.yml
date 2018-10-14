@@ -419,3 +419,39 @@
 
     - name: "[updatedb] - run updatedb"
       shell: 'updatedb'
+
+
+
+# docker service ps logging_elasticsearch
+# ID                  NAME                          IMAGE                           NODE                DESIRED STATE       CURRENT STATE                ERROR       PORTS
+# zkjhu4mog2i7        logging_elasticsearch.1       bossjones/elasticsearch:5.6.1                       Running             Pending about a minute ago   "no suitable node (scheduling …"
+# aw939se0870j         \_ logging_elasticsearch.1   bossjones/elasticsearch:5.6.1                       Shutdown            Pending about a minute ago   "no suitable node (scheduling …"
+# jbnhuqfyt0na         \_ logging_elasticsearch.1   bossjones/elasticsearch:5.6.1                       Shutdown            Pending about a minute ago   "no suitable node (scheduling …"
+# [root@node1 elasticsearch]# docker service ps logging_elasticsearch
+# ID                  NAME                          IMAGE                           NODE                DESIRED STATE       CURRENT STATE           ERROR                              PORTS
+# zkjhu4mog2i7        logging_elasticsearch.1       bossjones/elasticsearch:5.6.1                       Running             Pending 2 minutes ago   "no suitable node (scheduling …"
+# aw939se0870j         \_ logging_elasticsearch.1   bossjones/elasticsearch:5.6.1                       Shutdown            Pending 2 minutes ago   "no suitable node (scheduling …"
+# jbnhuqfyt0na         \_ logging_elasticsearch.1   bossjones/elasticsearch:5.6.1                       Shutdown            Pending 2 minutes ago   "no suitable node (scheduling …"
+
+# HOTFIX: Temporary  ( run from manager node )
+# https://stackoverflow.com/questions/44148195/how-to-fix-this-issue-no-suitable-node-scheduling-constraints-not-satisfied-on
+# docker node update --label-add role=worker node3
+# docker node update --label-add role=worker node4
+# docker node update --label-add role=worker node5
+# docker node update --label-add memory=high node3
+# docker node update --label-add memory=high node4
+# docker node update --label-add memory=high node5
+
+
+# - name: Ensure mountpoint exists
+#   file:
+#     path: /mnt/temp
+#     state: directory
+
+# - name: Configure /etc/fstab
+#   mount:
+#     name: /mnt/temp
+#     src: higgs.home:/export/temp
+#     fstype: nfs
+#     opts: rw,sync,nfsvers=4
+#     state: mounted
