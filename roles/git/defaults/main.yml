@@ -1,6 +1,6 @@
 ---
 
-git_server_base_url: "stash.zroot.int"
+git_server_base_url: "stash.scarlettlab.home"
 
 git_proj_name: "test"
 git_repo_name: "test"
@@ -12,7 +12,7 @@ git_tag: ""
 git_message: "New Commit"
 
 git_config_user: "The Orc"
-git_config_email: "orc@zroot.org"
+git_config_email: "orc@scarlettlab.org"
 
 
 git_use_master: False

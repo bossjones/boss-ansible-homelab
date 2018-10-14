@@ -4,7 +4,7 @@ dependency:
 driver:
   name: docker
 platforms:
-- { name: "centos74_git", image: "registry.zroot.int/deploy/flep_orchestrator", tag: "30", priv: True, caps: "SYS_ADMIN" , sec_opts: "seccomp:unconfined", cmd: "/usr/sbin/init" }
+- { name: "centos74_git", image: "registry.scarlettlab.home/deploy/flep_orchestrator", tag: "30", priv: True, caps: "SYS_ADMIN" , sec_opts: "seccomp:unconfined", cmd: "/usr/sbin/init" }
 provisioner:
     name: ansible
     lint:
@@ -17,7 +17,7 @@ provisioner:
         git_dest: "/tmp/ansible"
         git_commit: "Test commit"
         git_config_user: "The Orc"
-        git_config_email: "orc@zroot.org"
+        git_config_email: "orc@scarlettlab.org"
     env:
       LANG: C
       LC_ALL: C

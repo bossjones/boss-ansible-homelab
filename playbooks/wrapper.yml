@@ -1,26 +1,26 @@
 ---
 
-# - hosts: "swarm"
-#   become: True
-#   become_user: root
-#   tasks:
+- hosts: "swarm"
+  become: True
+  become_user: root
+  tasks:
 
-#     - name: "Install epel"
-#       yum:
-#           name: "{{ item }}"
-#           state: latest
-#       with_items:
-#           - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    - name: "Install epel"
+      yum:
+          name: "{{ item }}"
+          state: latest
+      with_items:
+          - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
-#     - name: "Install epel pkgs"
-#       yum:
-#           name: "{{ item }}"
-#           state: latest
-#       with_items:
-#           - ccze
-#           - htop
-#           - ngrep
-#           - nethogs
+    - name: "Install epel pkgs"
+      yum:
+          name: "{{ item }}"
+          state: latest
+      with_items:
+          - ccze
+          - htop
+          - ngrep
+          - nethogs
 
 # - hosts: "nfs"
 #   become: True
@@ -85,99 +85,99 @@
   - role: 'grycap.nfs'
 
 
-# - hosts: "swarm"
-#   become: True
-#   become_user: root
-#   # Elasticsearch needs this
-#   tags:
-#     - tuning
-#     - perf
-#   tasks:
-#     - name: "[sysctl] - vm.max_map_count=262144"
-#       sysctl:
-#         name: vm.max_map_count
-#         value: 262144
-#         sysctl_set: yes
-#         reload: yes
+- hosts: "swarm"
+  become: True
+  become_user: root
+  # Elasticsearch needs this
+  tags:
+    - tuning
+    - perf
+  tasks:
+    - name: "[sysctl] - vm.max_map_count=262144"
+      sysctl:
+        name: vm.max_map_count
+        value: 262144
+        sysctl_set: yes
+        reload: yes
 
-#     # TODO: Will this work on underpowered machines?
-#     - name: "[sysctl] - net.core.somaxconn=65535"
-#       sysctl:
-#         name: net.core.somaxconn
-#         value: 65535
-#         sysctl_set: yes
-#         reload: yes
+    # TODO: Will this work on underpowered machines?
+    - name: "[sysctl] - net.core.somaxconn=65535"
+      sysctl:
+        name: net.core.somaxconn
+        value: 65535
+        sysctl_set: yes
+        reload: yes
 
-#     # TODO: Will this work on underpowered machines?
-#     - name: "[sysctl] - fs.file-max=518144"
-#       sysctl:
-#         name: fs.file-max
-#         value: 518144
-#         sysctl_set: yes
-#         reload: yes
+    # TODO: Will this work on underpowered machines?
+    - name: "[sysctl] - fs.file-max=518144"
+      sysctl:
+        name: fs.file-max
+        value: 518144
+        sysctl_set: yes
+        reload: yes
 
-#     - name: Configure su pam_limits.so
-#       lineinfile:
-#         dest=/etc/pam.d/su
-#         regexp='^session    required   pam_limits.so'
-#         insertafter=EOF
-#         line='session    required   pam_limits.so'
-#     #   notify: Restart Elasticsearch
+    - name: Configure su pam_limits.so
+      lineinfile:
+        dest=/etc/pam.d/su
+        regexp='^session    required   pam_limits.so'
+        insertafter=EOF
+        line='session    required   pam_limits.so'
+    #   notify: Restart Elasticsearch
 
-#     # - name: Configure common-session pam_limits.so
-#     #   lineinfile:
-#     #     dest=/etc/pam.d/common-session
-#     #     regexp='^session    required   pam_limits.so'
-#     #     insertafter=EOF
-#     #     line='session    required   pam_limits.so'
-#     # #   notify: Restart Elasticsearch
+    # - name: Configure common-session pam_limits.so
+    #   lineinfile:
+    #     dest=/etc/pam.d/common-session
+    #     regexp='^session    required   pam_limits.so'
+    #     insertafter=EOF
+    #     line='session    required   pam_limits.so'
+    # #   notify: Restart Elasticsearch
 
-#     # - name: Configure common-session-noninteractive pam_limits.so
-#     #   lineinfile:
-#     #     dest=/etc/pam.d/common-session-noninteractive
-#     #     regexp='^session    required   pam_limits.so'
-#     #     insertafter=EOF
-#     #     line='session    required   pam_limits.so'
-#     # #   notify: Restart Elasticsearch
+    # - name: Configure common-session-noninteractive pam_limits.so
+    #   lineinfile:
+    #     dest=/etc/pam.d/common-session-noninteractive
+    #     regexp='^session    required   pam_limits.so'
+    #     insertafter=EOF
+    #     line='session    required   pam_limits.so'
+    # #   notify: Restart Elasticsearch
 
-#     - name: Configure sudo pam_limits.so
-#       lineinfile:
-#         dest=/etc/pam.d/sudo
-#         regexp='^session    required   pam_limits.so'
-#         insertafter=EOF
-#         line='session    required   pam_limits.so'
-#     #   notify: Restart Elasticsearch
+    - name: Configure sudo pam_limits.so
+      lineinfile:
+        dest=/etc/pam.d/sudo
+        regexp='^session    required   pam_limits.so'
+        insertafter=EOF
+        line='session    required   pam_limits.so'
+    #   notify: Restart Elasticsearch
 
-#     # SOURCE: https://ozzimpact.github.io/development/elasticsearch-configuration-tuning
-#     # Sets the maximum number of file-handles that the Linux kernel will allocate.
-#     - name: increase pam limits for docker user
-#       pam_limits:
-#         domain: docker
-#         limit_type: soft
-#         limit_item: nofile
-#         value: 65535
+    # SOURCE: https://ozzimpact.github.io/development/elasticsearch-configuration-tuning
+    # Sets the maximum number of file-handles that the Linux kernel will allocate.
+    - name: increase pam limits for docker user
+      pam_limits:
+        domain: docker
+        limit_type: soft
+        limit_item: nofile
+        value: 65535
 
-#     - name: increase pam limits for docker user
-#       pam_limits:
-#         domain: docker
-#         limit_type: hard
-#         limit_item: nofile
-#         value: 65535
+    - name: increase pam limits for docker user
+      pam_limits:
+        domain: docker
+        limit_type: hard
+        limit_item: nofile
+        value: 65535
 
-#     # Sets the limits of file descriptors for specific user.
-#     - name: increase pam limits for docker user
-#       pam_limits:
-#         domain: docker
-#         limit_type: soft
-#         limit_item: memlock
-#         value: unlimited
+    # Sets the limits of file descriptors for specific user.
+    - name: increase pam limits for docker user
+      pam_limits:
+        domain: docker
+        limit_type: soft
+        limit_item: memlock
+        value: unlimited
 
-#     - name: increase pam limits for docker user
-#       pam_limits:
-#         domain: docker
-#         limit_type: hard
-#         limit_item: memlock
-#         value: unlimited
+    - name: increase pam limits for docker user
+      pam_limits:
+        domain: docker
+        limit_type: hard
+        limit_item: memlock
+        value: unlimited
 
 # HOW TO VERIFY
 # su docker --shell /bin/bash --command "cat /proc/sys/vm/swappiness "
@@ -189,59 +189,59 @@
 # su docker --shell /bin/bash --command "ulimit -Sn"
 # su docker --shell /bin/bash --command "ulimit -Hn"
 
-# # Install docker
-# - hosts: "swarm"
-#   become: True
-#   become_user: root
-#   vars:
-#     myhosts: swarm
-#     action: install
-#     docker_use_lvm: True
-#     docker_pvnane: "/dev/sdb"
-#     docker_pvname: "/dev/sdb"
-#   roles:
-#     - { role: docker }
+# Install docker
+- hosts: "swarm"
+  become: True
+  become_user: root
+  vars:
+    myhosts: swarm
+    action: install
+    docker_use_lvm: True
+    docker_pvnane: "/dev/sdb"
+    docker_pvname: "/dev/sdb"
+  roles:
+    - { role: docker }
 
-# # Turn cluster into swarm cluster
-# - hosts: "swarm"
-#   become: True
-#   become_user: root
-#   vars:
-#     myhosts: swarm
-#     action: swarm
-#     docker_use_lvm: True
-#     docker_pvnane: "/dev/sdb"
-#     docker_pvname: "/dev/sdb"
-#   roles:
-#     - { role: docker }
+# Turn cluster into swarm cluster
+- hosts: "swarm"
+  become: True
+  become_user: root
+  vars:
+    myhosts: swarm
+    action: swarm
+    docker_use_lvm: True
+    docker_pvnane: "/dev/sdb"
+    docker_pvname: "/dev/sdb"
+  roles:
+    - { role: docker }
 
-# - hosts: "nfs"
-#   become: True
-#   become_user: root
-#   vars:
-#     traefik_loglevel: DEBUG
-#     traefik_debug: True
-#     traefik_webui_port: 8080
-#     traefik_version: latest
-#     traefik_stack_name: traefik
-#     traefik_https: False
-#     traefik_domain: "scarlettlab.home"
-#   environment:
-#     TRAEFIX_CONF_VERSION: 1
-#   roles:
-#     - { role: ansible-role-traefik-swarm }
+- hosts: "node1"
+  become: True
+  become_user: root
+  vars:
+    traefik_loglevel: DEBUG
+    traefik_debug: True
+    traefik_webui_port: 8080
+    traefik_version: latest
+    traefik_stack_name: traefik
+    traefik_https: False
+    traefik_domain: "scarlettlab.home"
+  environment:
+    TRAEFIX_CONF_VERSION: 1
+  roles:
+    - { role: ansible-role-traefik-swarm }
 
 
-# - hosts: "swarm"
-#   become: True
-#   become_user: root
-#   tasks:
-#     - name: "[DOCKER] - run netdata"
-#       shell: 'curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py";python get-pip.py'
+- hosts: "swarm"
+  become: True
+  become_user: root
+  tasks:
+    - name: "[DOCKER] - run netdata"
+      shell: 'curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py";python get-pip.py'
 
-#     - name: pip install docker-py
-#       pip:
-#         name: docker-py
+    - name: pip install docker-py
+      pip:
+        name: docker-py
 
 #     # - name: Create a container with limited capabilities
 #     #   docker_container:
@@ -258,21 +258,21 @@
 #     #       - /proc:/host/proc:ro
 #     #       - /sys:/host/sys:ro
 
-# - hosts: "swarm"
-#   become: True
-#   become_user: root
-#   tags:
-#     - netdata
-#   tasks:
+- hosts: "swarm"
+  become: True
+  become_user: root
+  tags:
+    - netdata
+  tasks:
 
-#   - name: netdata install script
-#     copy:
-#         content: |
-#                  bash <(curl -Ss https://my-netdata.io/kickstart.sh) all --dont-wait
-#         dest: /usr/local/bin/install-netdata.sh
+  - name: netdata install script
+    copy:
+        content: |
+                 bash <(curl -Ss https://my-netdata.io/kickstart.sh) all --dont-wait
+        dest: /usr/local/bin/install-netdata.sh
 
-#   - name: "[NETDATA] - compile and install netdata"
-#     shell: 'bash /usr/local/bin/install-netdata.sh'
+  - name: "[NETDATA] - compile and install netdata"
+    shell: 'bash /usr/local/bin/install-netdata.sh'
 
 - hosts: "swarm"
   become: True
@@ -344,15 +344,15 @@
     - { role: ansible-rsyslog }
 
 
-# - hosts: "swarm"
-#   become: True
-#   become_user: root
-#   tags:
-#     - debug
-#   tasks:
+- hosts: "swarm"
+  become: True
+  become_user: root
+  tags:
+    - debug
+  tasks:
 
-#   - name: '[DEBUG - GROUPS] managers'
-#     debug: msg="{{ groups['managers'] | first }}"
+  - name: '[DEBUG - GROUPS] managers'
+    debug: msg="{{ groups['managers'] | first }}"
 
 
 # - hosts: "swarm"

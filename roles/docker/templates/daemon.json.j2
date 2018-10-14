@@ -1,5 +1,7 @@
 {
     "hosts": ["unix:///var/run/docker.sock", "tcp://0.0.0.0:2375"],
+    "experimental": {{docker_experimental}},
+    "debug": {{docker_debug}},
     "insecure-registries": ["{{docker_insecure_registry}}"],
 {% if docker_cgroup_driver != "" %}
     "exec-opts": ["native.cgroupdriver={{docker_cgroup_driver}}"],

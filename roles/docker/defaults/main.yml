@@ -4,10 +4,10 @@ docker_start_engine: True
 docker_use_lvm: false
 docker_use_tls: False
 
-docker_insecure_registry: "registry.zroot.int"
+docker_insecure_registry: "registry.scarlettlab.home"
 
-ntp_server: "10.3.1.113"
-timezone: "Europe/Rome"
+ntp_server: "0.ubuntu.pool.ntp.org"
+timezone: "America/New_York"
 
 docker_repo: "https://download.docker.com/linux/centos/docker-ce.repo"
 #docker_version: "docker-ce"
@@ -33,8 +33,9 @@ docker_tls: " --tlsverify --tlscacert=/etc/docker/certs/ca.pem --tlscert=/etc/do
 docker_other_opts: " --max-concurrent-downloads=10 --max-concurrent-uploads=10"
 docker_engine_options: " {{docker_sockets}} {{docker_other_opts}} "
 docker_engine_labels:
-  org.zroot.swarm: ""
-docker_engine_log_level: "info"
+  org.scarlettlab.swarm: ""
+# docker_engine_log_level: "info"
+docker_engine_log_level: "debug"
 docker_engine_log_driver: "json-file"
 docker_engine_log_labels: "{% raw %}{{.Name}}{% endraw%}"
 docker_engine_log_max_file: "5"
@@ -46,6 +47,8 @@ docker_kernel_options:
   - "net.bridge.bridge-nf-call-ip6tables = 1"
   - "net.bridge.bridge-nf-call-iptables = 1"
 
+docker_experimental: true
+docker_debug: true
 
 # For kubernetes you must use cgroupfs
 #docker_cgroup_driver: "cgroupfs"

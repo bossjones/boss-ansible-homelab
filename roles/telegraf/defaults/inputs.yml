@@ -151,7 +151,7 @@ candidate_input:
 
   # httpjson:
   #   servers:
-  #     - "https://jenkins.zroot.int/computer/api/json"
+  #     - "https://jenkins.scarlettlab.home/computer/api/json"
   #   response_timeout: "5s"
   #   insecure_skip_verify: "true"
   #   method: "GET"

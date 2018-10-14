@@ -3,7 +3,7 @@
 candidate_output:
   influxdb:
     urls:
-      - "http://influxdb.zroot.int:8086"
+      - "http://influxdb.scarlettlab.home:8086"
     database: "{{ influx_dbname }}"
     retention_policy: ""
     write_consistency: "any"

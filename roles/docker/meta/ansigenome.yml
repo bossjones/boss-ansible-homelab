@@ -5,24 +5,24 @@ ansigenome_info:
     - name:  'Manuel Bovo'
       email: 'email'
   synopsis:  Installation of docker-engine optionally using lvm-thinpool devicemapper
-  
+
   usage: |
     This role will setup docker-engine with the specified version.
     With a specific action can enable the swarm mode on multiple nodes at the same time
-    
+
   sample: |
     # install docker engine
-    roles: 
+    roles:
       - role: docker
-      
+
     # configure lvm-thinpool using the whole physical device /dev/sdb
     roles:
       - {role: docker, docker_use_lvm: true, docker_pvname: "/dev/sdb" }
- 
+
     # specify ntp_server and defined timezone to use for time synchronization
     roles:
-      - { role: docker,  ntp_server: 10.3.1.113, timezone: "Europe/Rome" }
-      
+      - { role: docker,  ntp_server: 0.ubuntu.pool.ntp.org, timezone: "Europe/Rome" }
+
     # Specify LVM volume group name, volume name and metadata volume name
     roles:
       - { role: docker, docker_use_lvm: true, docker_pvname: "/dev/sdb", docker_vgname: "docker",  docker_lvname: "thinpool", docker_lvname_meta: "dockermeta" }
