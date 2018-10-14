@@ -1,413 +1,422 @@
 ---
 
-- hosts: "swarm"
-  become: True
-  become_user: root
-  tasks:
+# - hosts: "swarm"
+#   become: True
+#   become_user: root
+#   tasks:
 
-    - name: "Install epel"
-      yum:
-          name: "{{ item }}"
-          state: latest
-      with_items:
-          - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+#     - name: "Install epel"
+#       yum:
+#           name: "{{ item }}"
+#           state: latest
+#       with_items:
+#           - https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
 
-    - name: "Install epel pkgs"
-      yum:
-          name: "{{ item }}"
-          state: latest
-      with_items:
-          - ccze
-          - htop
-          - ngrep
-          - nethogs
+#     - name: "Install epel pkgs"
+#       yum:
+#           name: "{{ item }}"
+#           state: latest
+#       with_items:
+#           - ccze
+#           - htop
+#           - ngrep
+#           - nethogs
+#           - nload
+#           - iftop
+#           - iptraf-ng
+#           - slurm
+#           - vnstat
+#           # Requires repoforge
+#           # http://repository.it4i.cz/mirrors/repoforge/redhat/el7/en/x86_64/rpmforge/RPMS/rpmforge-release-0.5.3-1.el7.rf.x86_64.rpm
+#           # - bmon
+#           # - tcptrack
 
+# # - hosts: "nfs"
+# #   become: True
+# #   become_user: root
+# #   roles:
+# #     - role: geerlingguy.nfs
+# #       nfs_exports: ["/var/shared/folder 	192.168.60.0/24(rw,fsid=0,sync,crossmnt,no_subtree_check,all_squash,anonuid=1000,anongid=1000)"]
+
+
+
+# # # Type of node to install: front or wn
+# # nfs_mode: front
+# # # Shared directories to export ( line to add to the /etc/exports file )
+# # nfs_exports: ""
+# # # Shared directories to mount
+# # nfs_client_imports: ""
+
+# # mkdir /exports
+# # mkdir /exports/opt
+# # mkdir /exports/etc
+# # mount --bind /usr/local/opt /exports/opt
+# # mount --bind /usr/local/etc /exports/etc
+# # exportfs -o fsid=0,insecure,no_subtree_check gss/krb5p:/exports e
+# # exportfs -o rw,nohide,insecure,no_subtree_check gss/krb5p:/exports/opt exportfs -o rw,nohide,insecure,no_subtree_check gss/krb5p:/exports/etc
+
+# # nfs server
 # - hosts: "nfs"
 #   become: True
 #   become_user: root
+#   gather_facts: True
+#   tags:
+#   - nfs
+#   vars:
+#     nfs_mode: 'front'
+#     # nfs_exports: [{path: "/var/nfs", export: "*(fsid=0,rw,async,no_root_squash,no_subtree_check,insecure)"}]
+#     # nfs_exports: [{path: "/var/nfs", bind: "/dev/sdb", export: "*(fsid=0,rw,sync,crossmnt,subtree_check,no_root_squash,insecure)"}]
+#     nfs_exports: [{path: "/pf9", bind: "/dev/sdb", export: "*(rw,sync,fsid=0,crossmnt,no_subtree_check)"}]
+#     extra_local_paths:
+#     - /pf9
+#     - /pf9/instances
 #   roles:
-#     - role: geerlingguy.nfs
-#       nfs_exports: ["/var/shared/folder 	192.168.60.0/24(rw,fsid=0,sync,crossmnt,no_subtree_check,all_squash,anonuid=1000,anongid=1000)"]
+#   - role: 'grycap.nfs'
 
+# # NOTE: Before mounting the NFS share, we need to check the available shares on the NFS server. To do that,  run the following command on the client-server.
 
+# # [root@client ~]# showmount -e 192.168.12.5
+# # Export list for 192.168.12.5:
+# # /nfsfileshare 192.168.12.7
 
-# # Type of node to install: front or wn
-# nfs_mode: front
-# # Shared directories to export ( line to add to the /etc/exports file )
-# nfs_exports: ""
-# # Shared directories to mount
-# nfs_client_imports: ""
-
-# mkdir /exports
-# mkdir /exports/opt
-# mkdir /exports/etc
-# mount --bind /usr/local/opt /exports/opt
-# mount --bind /usr/local/etc /exports/etc
-# exportfs -o fsid=0,insecure,no_subtree_check gss/krb5p:/exports e
-# exportfs -o rw,nohide,insecure,no_subtree_check gss/krb5p:/exports/opt exportfs -o rw,nohide,insecure,no_subtree_check gss/krb5p:/exports/etc
-
-# nfs server
-- hosts: "nfs"
-  become: True
-  become_user: root
-  gather_facts: True
-  tags:
-  - nfs
-  vars:
-    nfs_mode: 'front'
-    # nfs_exports: [{path: "/var/nfs", export: "*(fsid=0,rw,async,no_root_squash,no_subtree_check,insecure)"}]
-    # nfs_exports: [{path: "/var/nfs", bind: "/dev/sdb", export: "*(fsid=0,rw,sync,crossmnt,subtree_check,no_root_squash,insecure)"}]
-    nfs_exports: [{path: "/pf9", bind: "/dev/sdb", export: "*(rw,sync,fsid=0,crossmnt,no_subtree_check)"}]
-    extra_local_paths:
-    - /pf9
-    - /pf9/instances
-  roles:
-  - role: 'grycap.nfs'
-
-# NOTE: Before mounting the NFS share, we need to check the available shares on the NFS server. To do that,  run the following command on the client-server.
-
-# [root@client ~]# showmount -e 192.168.12.5
-# Export list for 192.168.12.5:
-# /nfsfileshare 192.168.12.7
-
-# nfs clients
-- hosts: "nfs_clients"
-  become: True
-  become_user: root
-  gather_facts: True
-  tags:
-  - nfs
-  vars:
-    nfs_mode: 'wn'
-    nfs_client_imports: [{ local: "/mnt/nfs", remote: "/pf9", server_host: "{{ groups['managers'] | first }}", opts: "defaults,nofail,x-systemd.automount", fstype: "nfs" }]
-    # noatime,nosuid,hard,intr,proto=tcp,port=2049,_netdev   0   0
-  roles:
-  - role: 'grycap.nfs'
-
-
-- hosts: "swarm"
-  become: True
-  become_user: root
-  # Elasticsearch needs this
-  tags:
-    - tuning
-    - perf
-  tasks:
-    - name: "[sysctl] - vm.max_map_count=262144"
-      sysctl:
-        name: vm.max_map_count
-        value: 262144
-        sysctl_set: yes
-        reload: yes
-
-    # TODO: Will this work on underpowered machines?
-    - name: "[sysctl] - net.core.somaxconn=65535"
-      sysctl:
-        name: net.core.somaxconn
-        value: 65535
-        sysctl_set: yes
-        reload: yes
-
-    # TODO: Will this work on underpowered machines?
-    - name: "[sysctl] - fs.file-max=518144"
-      sysctl:
-        name: fs.file-max
-        value: 518144
-        sysctl_set: yes
-        reload: yes
-
-    - name: Configure su pam_limits.so
-      lineinfile:
-        dest=/etc/pam.d/su
-        regexp='^session    required   pam_limits.so'
-        insertafter=EOF
-        line='session    required   pam_limits.so'
-    #   notify: Restart Elasticsearch
-
-    # - name: Configure common-session pam_limits.so
-    #   lineinfile:
-    #     dest=/etc/pam.d/common-session
-    #     regexp='^session    required   pam_limits.so'
-    #     insertafter=EOF
-    #     line='session    required   pam_limits.so'
-    # #   notify: Restart Elasticsearch
-
-    # - name: Configure common-session-noninteractive pam_limits.so
-    #   lineinfile:
-    #     dest=/etc/pam.d/common-session-noninteractive
-    #     regexp='^session    required   pam_limits.so'
-    #     insertafter=EOF
-    #     line='session    required   pam_limits.so'
-    # #   notify: Restart Elasticsearch
-
-    - name: Configure sudo pam_limits.so
-      lineinfile:
-        dest=/etc/pam.d/sudo
-        regexp='^session    required   pam_limits.so'
-        insertafter=EOF
-        line='session    required   pam_limits.so'
-    #   notify: Restart Elasticsearch
-
-    # SOURCE: https://ozzimpact.github.io/development/elasticsearch-configuration-tuning
-    # Sets the maximum number of file-handles that the Linux kernel will allocate.
-    - name: increase pam limits for docker user
-      pam_limits:
-        domain: docker
-        limit_type: soft
-        limit_item: nofile
-        value: 65535
-
-    - name: increase pam limits for docker user
-      pam_limits:
-        domain: docker
-        limit_type: hard
-        limit_item: nofile
-        value: 65535
-
-    # Sets the limits of file descriptors for specific user.
-    - name: increase pam limits for docker user
-      pam_limits:
-        domain: docker
-        limit_type: soft
-        limit_item: memlock
-        value: unlimited
-
-    - name: increase pam limits for docker user
-      pam_limits:
-        domain: docker
-        limit_type: hard
-        limit_item: memlock
-        value: unlimited
-
-# HOW TO VERIFY
-# su docker --shell /bin/bash --command "cat /proc/sys/vm/swappiness "
-# su docker --shell /bin/bash --command "cat /proc/sys/net/core/somaxconn"
-# su docker --shell /bin/bash --command "cat /proc/sys/vm/max_map_count "
-# su docker --shell /bin/bash --command "cat /proc/sys/fs/file-max "
-
-# su docker --shell /bin/bash --command "ulimit -n"
-# su docker --shell /bin/bash --command "ulimit -Sn"
-# su docker --shell /bin/bash --command "ulimit -Hn"
-
-# Install docker
-- hosts: "swarm"
-  become: True
-  become_user: root
-  vars:
-    myhosts: swarm
-    action: install
-    docker_use_lvm: True
-    docker_pvnane: "/dev/sdb"
-    docker_pvname: "/dev/sdb"
-  roles:
-    - { role: docker }
-
-# Turn cluster into swarm cluster
-- hosts: "swarm"
-  become: True
-  become_user: root
-  vars:
-    myhosts: swarm
-    action: swarm
-    docker_use_lvm: True
-    docker_pvnane: "/dev/sdb"
-    docker_pvname: "/dev/sdb"
-  roles:
-    - { role: docker }
-
-- hosts: "node1"
-  become: True
-  become_user: root
-  vars:
-    traefik_loglevel: DEBUG
-    traefik_debug: True
-    traefik_webui_port: 8080
-    traefik_version: latest
-    traefik_stack_name: traefik
-    traefik_https: False
-    traefik_domain: "scarlettlab.home"
-  environment:
-    TRAEFIX_CONF_VERSION: 1
-  roles:
-    - { role: ansible-role-traefik-swarm }
-
-
-- hosts: "swarm"
-  become: True
-  become_user: root
-  tasks:
-    - name: "[DOCKER] - run netdata"
-      shell: 'curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py";python get-pip.py'
-
-    - name: pip install docker-py
-      pip:
-        name: docker-py
-
-#     # - name: Create a container with limited capabilities
-#     #   docker_container:
-#     #     name: swarmops-netdata
-#     #     ports:
-#     #     - "19999:19999"
-#     #     image: titpetric/netdata
-#     #     command: sleep infinity
-#     #     restart_policy: always
-#     #     state: started
-#     #     capabilities:
-#     #       - sys_ptrace
-#     #     volumes:
-#     #       - /proc:/host/proc:ro
-#     #       - /sys:/host/sys:ro
-
-- hosts: "swarm"
-  become: True
-  become_user: root
-  tags:
-    - netdata
-  tasks:
-
-  - name: netdata install script
-    copy:
-        content: |
-                 bash <(curl -Ss https://my-netdata.io/kickstart.sh) all --dont-wait
-        dest: /usr/local/bin/install-netdata.sh
-
-  - name: "[NETDATA] - compile and install netdata"
-    shell: 'bash /usr/local/bin/install-netdata.sh'
-
-- hosts: "swarm"
-  become: True
-  become_user: root
-  gather_facts: True
-  tags:
-  - journald
-  vars:
-    # PERF
-    # SOURCE: https://docs.openshift.com/container-platform/3.6/install_config/aggregate_logging_sizing.html
-    # SOURCE: https://nickcanzoneri.com/centos/logging/journald/rsyslog/2017/08/18/losing-log-messages.html
-    # SOURCE: https://www.rootusers.com/how-to-change-log-rate-limiting-in-linux/
-    # # Disable rate limiting
-    # RateLimitInterval=1s
-    # RateLimitBurst=10000
-    # Storage=volatile
-    # Compress=no
-    # MaxRetentionSec=30s
-    journald_storage_option: "volatile"
-    journald_compress_option: "no"
-    journald_seal_option: "yes"
-    journald_splitmode: "uid"
-    journald_sync_interval: "5m"
-    journald_rate_limit_interval: "1s"
-    journald_rate_limit_burst: "10000"
-    journald_system_max_use: ""
-    journald_system_keep_free: ""
-    journald_max_file_size: ""
-    journald_runtime_max_use: ""
-    journald_runtime_keep_free: ""
-    journald_runtime_max_file_size: ""
-    journald_max_retention_sec: "30s"
-    journald_max_file_sec: "1month"
-    journald_forward_to_syslog: "yes"
-    journald_forward_to_kmsg: "no"
-    journald_forward_to_console: "no"
-    journald_forward_to_wall: "yes"
-    journald_tty_path: "/dev/console"
-    journald_max_level_store: "debug"
-    journald_max_level_syslog: "debug"
-    journald_max_level_kmsg: "notice"
-    journald_max_level_console: "info"
-    journald_max_level_wall: "emerg"
-  roles:
-    - { role: ansible-journald }
-
-# execute 'validate_config' do
-#   command "rsyslogd -N 1 -f #{node['rsyslog']['config_prefix']}/rsyslog.conf"
-#   action  :nothing
-# end
-
-- hosts: "rsyslog_masters"
-  become: True
-  become_user: root
-  gather_facts: True
-  pre_tasks:
-
-  - name: Ensure directories to export exist
-    file: 'path="/var/syslog/hosts" state=directory owner=root group=root mode=0755 recurse=yes'
-  vars:
-    type: server
-    rsyslog_master: "{{ groups['managers'] | first }}"
-  roles:
-    - { role: ansible-rsyslog }
-
-- hosts: "rsyslog_clients"
-  become: True
-  become_user: root
-  gather_facts: True
-  vars:
-    type: client
-    rsyslog_master: "{{ groups['managers'] | first }}"
-  roles:
-    - { role: ansible-rsyslog }
-
-
-- hosts: "swarm"
-  become: True
-  become_user: root
-  tags:
-    - debug
-  tasks:
-
-  - name: '[DEBUG - GROUPS] managers'
-    debug: msg="{{ groups['managers'] | first }}"
+# # nfs clients
+# - hosts: "nfs_clients"
+#   become: True
+#   become_user: root
+#   gather_facts: True
+#   tags:
+#   - nfs
+#   vars:
+#     nfs_mode: 'wn'
+#     nfs_client_imports: [{ local: "/mnt/nfs", remote: "/pf9", server_host: "{{ groups['managers'] | first }}", opts: "defaults,nofail,x-systemd.automount", fstype: "nfs" }]
+#     # noatime,nosuid,hard,intr,proto=tcp,port=2049,_netdev   0   0
+#   roles:
+#   - role: 'grycap.nfs'
 
 
 # - hosts: "swarm"
 #   become: True
 #   become_user: root
-#   gather_facts: True
-#   #   serial: 1
-#   vars:
-#     mgmt_node: "{{ groups['managers'] | first }}"
+#   # Elasticsearch needs this
 #   tags:
-#   - beegfs
+#     - tuning
+#     - perf
+#   tasks:
+#     - name: "[sysctl] - vm.max_map_count=262144"
+#       sysctl:
+#         name: vm.max_map_count
+#         value: 262144
+#         sysctl_set: yes
+#         reload: yes
+
+#     # TODO: Will this work on underpowered machines?
+#     - name: "[sysctl] - net.core.somaxconn=65535"
+#       sysctl:
+#         name: net.core.somaxconn
+#         value: 65535
+#         sysctl_set: yes
+#         reload: yes
+
+#     # TODO: Will this work on underpowered machines?
+#     - name: "[sysctl] - fs.file-max=518144"
+#       sysctl:
+#         name: fs.file-max
+#         value: 518144
+#         sysctl_set: yes
+#         reload: yes
+
+#     - name: Configure su pam_limits.so
+#       lineinfile:
+#         dest=/etc/pam.d/su
+#         regexp='^session    required   pam_limits.so'
+#         insertafter=EOF
+#         line='session    required   pam_limits.so'
+#     #   notify: Restart Elasticsearch
+
+#     # - name: Configure common-session pam_limits.so
+#     #   lineinfile:
+#     #     dest=/etc/pam.d/common-session
+#     #     regexp='^session    required   pam_limits.so'
+#     #     insertafter=EOF
+#     #     line='session    required   pam_limits.so'
+#     # #   notify: Restart Elasticsearch
+
+#     # - name: Configure common-session-noninteractive pam_limits.so
+#     #   lineinfile:
+#     #     dest=/etc/pam.d/common-session-noninteractive
+#     #     regexp='^session    required   pam_limits.so'
+#     #     insertafter=EOF
+#     #     line='session    required   pam_limits.so'
+#     # #   notify: Restart Elasticsearch
+
+#     - name: Configure sudo pam_limits.so
+#       lineinfile:
+#         dest=/etc/pam.d/sudo
+#         regexp='^session    required   pam_limits.so'
+#         insertafter=EOF
+#         line='session    required   pam_limits.so'
+#     #   notify: Restart Elasticsearch
+
+#     # SOURCE: https://ozzimpact.github.io/development/elasticsearch-configuration-tuning
+#     # Sets the maximum number of file-handles that the Linux kernel will allocate.
+#     - name: increase pam limits for docker user
+#       pam_limits:
+#         domain: docker
+#         limit_type: soft
+#         limit_item: nofile
+#         value: 65535
+
+#     - name: increase pam limits for docker user
+#       pam_limits:
+#         domain: docker
+#         limit_type: hard
+#         limit_item: nofile
+#         value: 65535
+
+#     # Sets the limits of file descriptors for specific user.
+#     - name: increase pam limits for docker user
+#       pam_limits:
+#         domain: docker
+#         limit_type: soft
+#         limit_item: memlock
+#         value: unlimited
+
+#     - name: increase pam limits for docker user
+#       pam_limits:
+#         domain: docker
+#         limit_type: hard
+#         limit_item: memlock
+#         value: unlimited
+
+# # HOW TO VERIFY
+# # su docker --shell /bin/bash --command "cat /proc/sys/vm/swappiness "
+# # su docker --shell /bin/bash --command "cat /proc/sys/net/core/somaxconn"
+# # su docker --shell /bin/bash --command "cat /proc/sys/vm/max_map_count "
+# # su docker --shell /bin/bash --command "cat /proc/sys/fs/file-max "
+
+# # su docker --shell /bin/bash --command "ulimit -n"
+# # su docker --shell /bin/bash --command "ulimit -Sn"
+# # su docker --shell /bin/bash --command "ulimit -Hn"
+
+# # Install docker
+# - hosts: "swarm"
+#   become: True
+#   become_user: root
+#   vars:
+#     myhosts: swarm
+#     action: install
+#     docker_use_lvm: True
+#     docker_pvnane: "/dev/sdb"
+#     docker_pvname: "/dev/sdb"
 #   roles:
-#     - { role: beegfs }
+#     - { role: docker }
 
-# NOTE: How to reference ip address from ansible
-# beegfs_enable:
-#       mgmt: "{{ inventory_hostname in groups['cluster_beegfs_mgmt'] }}"
-#       admon: no
-#       meta: "{{ inventory_hostname in groups['cluster_beegfs_mds'] }}"
-#       oss: "{{ inventory_hostname in groups['cluster_beegfs_oss'] }}"
-#       client: "{{ inventory_hostname in groups['cluster_beegfs_client'] }}"
+# # Turn cluster into swarm cluster
+# - hosts: "swarm"
+#   become: True
+#   become_user: root
+#   vars:
+#     myhosts: swarm
+#     action: swarm
+#     docker_use_lvm: True
+#     docker_pvnane: "/dev/sdb"
+#     docker_pvname: "/dev/sdb"
+#   roles:
+#     - { role: docker }
 
-# $ ssh node04
+# - hosts: "node1"
+#   become: True
+#   become_user: root
+#   vars:
+#     traefik_loglevel: DEBUG
+#     traefik_debug: True
+#     traefik_webui_port: 8080
+#     traefik_version: latest
+#     traefik_stack_name: traefik
+#     traefik_https: False
+#     traefik_domain: "scarlettlab.home"
+#   environment:
+#     TRAEFIX_CONF_VERSION: 1
+#   roles:
+#     - { role: ansible-role-traefik-swarm }
 
-# $ beegfs-ctl --listnodes --nodetype=meta --nicdetails
-# $ beegfs-ctl --listnodes --nodetype=storage --nicdetails
-# $ beegfs-ctl --listnodes --nodetype=client --nicdetails
-# $ beegfs-net                # Displays connections the client is actually using
-# $ beegfs-check-servers      # Displays possible connectivity of the services
-# $ beegfs-df                 # Displays free space and inodes of storage and metadata targets
 
-# client only
-# - hosts: "workers"
+# - hosts: "swarm"
+#   become: True
+#   become_user: root
+#   tasks:
+#     - name: "[DOCKER] - run netdata"
+#       shell: 'curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py";python get-pip.py'
+
+#     - name: pip install docker-py
+#       pip:
+#         name: docker-py
+
+# #     # - name: Create a container with limited capabilities
+# #     #   docker_container:
+# #     #     name: swarmops-netdata
+# #     #     ports:
+# #     #     - "19999:19999"
+# #     #     image: titpetric/netdata
+# #     #     command: sleep infinity
+# #     #     restart_policy: always
+# #     #     state: started
+# #     #     capabilities:
+# #     #       - sys_ptrace
+# #     #     volumes:
+# #     #       - /proc:/host/proc:ro
+# #     #       - /sys:/host/sys:ro
+
+# - hosts: "swarm"
+#   become: True
+#   become_user: root
+#   tags:
+#     - netdata
+#   tasks:
+
+#   - name: netdata install script
+#     copy:
+#         content: |
+#                  bash <(curl -Ss https://my-netdata.io/kickstart.sh) all --dont-wait
+#         dest: /usr/local/bin/install-netdata.sh
+
+#   - name: "[NETDATA] - compile and install netdata"
+#     shell: 'bash /usr/local/bin/install-netdata.sh'
+
+# - hosts: "swarm"
 #   become: True
 #   become_user: root
 #   gather_facts: True
-#   serial: 1
 #   tags:
-#   - beegfs
+#   - journald
+#   vars:
+#     # PERF
+#     # SOURCE: https://docs.openshift.com/container-platform/3.6/install_config/aggregate_logging_sizing.html
+#     # SOURCE: https://nickcanzoneri.com/centos/logging/journald/rsyslog/2017/08/18/losing-log-messages.html
+#     # SOURCE: https://www.rootusers.com/how-to-change-log-rate-limiting-in-linux/
+#     # # Disable rate limiting
+#     # RateLimitInterval=1s
+#     # RateLimitBurst=10000
+#     # Storage=volatile
+#     # Compress=no
+#     # MaxRetentionSec=30s
+#     journald_storage_option: "volatile"
+#     journald_compress_option: "no"
+#     journald_seal_option: "yes"
+#     journald_splitmode: "uid"
+#     journald_sync_interval: "5m"
+#     journald_rate_limit_interval: "1s"
+#     journald_rate_limit_burst: "10000"
+#     journald_system_max_use: ""
+#     journald_system_keep_free: ""
+#     journald_max_file_size: ""
+#     journald_runtime_max_use: ""
+#     journald_runtime_keep_free: ""
+#     journald_runtime_max_file_size: ""
+#     journald_max_retention_sec: "30s"
+#     journald_max_file_sec: "1month"
+#     journald_forward_to_syslog: "yes"
+#     journald_forward_to_kmsg: "no"
+#     journald_forward_to_console: "no"
+#     journald_forward_to_wall: "yes"
+#     journald_tty_path: "/dev/console"
+#     journald_max_level_store: "debug"
+#     journald_max_level_syslog: "debug"
+#     journald_max_level_kmsg: "notice"
+#     journald_max_level_console: "info"
+#     journald_max_level_wall: "emerg"
 #   roles:
-#     - { role: beegfs }
+#     - { role: ansible-journald }
 
-- hosts: "swarm"
-  become: True
-  become_user: root
-  gather_facts: True
-  tags:
-  - debug
-  roles:
-    - { role: boss-ansible-role-debug }
+# # execute 'validate_config' do
+# #   command "rsyslogd -N 1 -f #{node['rsyslog']['config_prefix']}/rsyslog.conf"
+# #   action  :nothing
+# # end
+
+# - hosts: "rsyslog_masters"
+#   become: True
+#   become_user: root
+#   gather_facts: True
+#   pre_tasks:
+
+#   - name: Ensure directories to export exist
+#     file: 'path="/var/syslog/hosts" state=directory owner=root group=root mode=0755 recurse=yes'
+#   vars:
+#     type: server
+#     rsyslog_master: "{{ groups['managers'] | first }}"
+#   roles:
+#     - { role: ansible-rsyslog }
+
+# - hosts: "rsyslog_clients"
+#   become: True
+#   become_user: root
+#   gather_facts: True
+#   vars:
+#     type: client
+#     rsyslog_master: "{{ groups['managers'] | first }}"
+#   roles:
+#     - { role: ansible-rsyslog }
+
+
+# - hosts: "swarm"
+#   become: True
+#   become_user: root
+#   tags:
+#     - debug
+#   tasks:
+
+#   - name: '[DEBUG - GROUPS] managers'
+#     debug: msg="{{ groups['managers'] | first }}"
+
+
+# # - hosts: "swarm"
+# #   become: True
+# #   become_user: root
+# #   gather_facts: True
+# #   #   serial: 1
+# #   vars:
+# #     mgmt_node: "{{ groups['managers'] | first }}"
+# #   tags:
+# #   - beegfs
+# #   roles:
+# #     - { role: beegfs }
+
+# # NOTE: How to reference ip address from ansible
+# # beegfs_enable:
+# #       mgmt: "{{ inventory_hostname in groups['cluster_beegfs_mgmt'] }}"
+# #       admon: no
+# #       meta: "{{ inventory_hostname in groups['cluster_beegfs_mds'] }}"
+# #       oss: "{{ inventory_hostname in groups['cluster_beegfs_oss'] }}"
+# #       client: "{{ inventory_hostname in groups['cluster_beegfs_client'] }}"
+
+# # $ ssh node04
+
+# # $ beegfs-ctl --listnodes --nodetype=meta --nicdetails
+# # $ beegfs-ctl --listnodes --nodetype=storage --nicdetails
+# # $ beegfs-ctl --listnodes --nodetype=client --nicdetails
+# # $ beegfs-net                # Displays connections the client is actually using
+# # $ beegfs-check-servers      # Displays possible connectivity of the services
+# # $ beegfs-df                 # Displays free space and inodes of storage and metadata targets
+
+# # client only
+# # - hosts: "workers"
+# #   become: True
+# #   become_user: root
+# #   gather_facts: True
+# #   serial: 1
+# #   tags:
+# #   - beegfs
+# #   roles:
+# #     - { role: beegfs }
+
+# - hosts: "swarm"
+#   become: True
+#   become_user: root
+#   gather_facts: True
+#   tags:
+#   - debug
+#   roles:
+#     - { role: boss-ansible-role-debug }
 
 
 - hosts: "swarm"
@@ -425,6 +434,12 @@
     - name: "[updatedb] - run updatedb"
       shell: 'updatedb'
 
+
+    - name: Creates an entry like "@hourly docker-gc"
+      cron:
+        name: "docker-gc hourly cleanup"
+        special_time: hourly
+        job: "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /etc:/etc:ro spotify/docker-gc"
 
 
 # docker service ps logging_elasticsearch
