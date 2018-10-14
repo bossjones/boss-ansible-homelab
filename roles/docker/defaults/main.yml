@@ -39,7 +39,7 @@ docker_engine_log_level: "debug"
 docker_engine_log_driver: "json-file"
 docker_engine_log_labels: "{% raw %}{{.Name}}{% endraw%}"
 docker_engine_log_max_file: "5"
-docker_engine_log_max_size: "10m"
+docker_engine_log_max_size: "100m"
 docker_engine_concurrent_transfer: "10"
 docker_kernel_options:
   - "net.ipv4.ip_forward = 1"
