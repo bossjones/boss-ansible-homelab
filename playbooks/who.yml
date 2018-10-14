@@ -1,0 +1,15 @@
+---
+- hosts: all
+
+  tasks:
+
+    - name: who
+      shell: who
+      become: yes
+      become_method: sudo
+      register: result_who
+
+    - name: print result_who
+      debug:
+        msg: "{{ result_who }}"
+      when: result_who is defined
