@@ -1,0 +1,36 @@
+---
+- hosts: "{{ myhosts }}"
+  become: True
+  become_user: root
+  tasks:
+    - name: define and deploy viz
+      docker_swarm_service:
+        name: viz
+        image: "dockersamples/visualizer"
+        limit_cpu: '0.5'
+        publish:
+        - '9190:8080/tcp'
+        constraints:
+        - 'node.role==manager'
+        container_labels:
+          traefik.enable: true
+          traefik.basic.port: 80
+          traefik.basic.protocol: "http"
+          traefik.backend: "viz"
+          traefik.frontend.rule: "Host:viz.scarlettlab.home"
+          traefik.docker.network: "traefik_net"
+          traefik.backend.loadbalancer.swarm: true
+        mounts:
+          - source: /var/run/docker.sock
+            target: /var/run/docker.sock
+            type: bind
+        env:
+        - "PORT=9190"
+        restart_policy: any
+        restart_policy_attempts: 5
+        restart_policy_window: 30
+      register: register_service
+
+    - name: '[DEBUG - DOCKER] register_service'
+      debug: msg="{{register_service}}"
+

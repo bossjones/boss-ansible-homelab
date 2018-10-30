@@ -1,0 +1,98 @@
+version: '3.5'
+
+services:
+    traefik:
+        image: traefik:{{ traefik_version }}
+        command: -c /etc/traefik/config.toml
+        # - --docker
+        # - --docker.domain={{traefik_domain}}
+        # - --logLevel={{traefik_loglevel}}
+        # - --defaultentrypoints=http
+        # - "--entryPoints=Name:http Address::42 Compress:true"
+        # - -c /etc/traefik/config.toml
+        ports:
+            - "80:80"
+            - "443:443"
+            - "{{ traefik_webui_port }}:8080"
+        networks:
+            - traefik_proxy
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+        configs:
+            - source: traefik_config
+              target: /etc/traefik/traefik.toml
+        deploy:
+            mode: global
+            update_config:
+                parallelism: 1
+                delay: 10s
+            placement:
+                constraints: [node.role==manager]
+            restart_policy:
+                condition: on-failure
+            resources:
+               limits:
+                cpus: '0.30'
+                memory: 128M
+               reservations:
+                   cpus: '0.10'
+                   memory: 50M
+
+            labels:
+                - "traefik.enable=true"
+                - "traefik.docker.network=traefik_proxy"
+                - "traefik.port=8080"
+                - "traefik.backend.loadbalancer.stickiness=true"
+                - "traefik.frontend.passHostHeader=true"
+                - "traefik.frontend.rule=Host:proxy.scarlettlab.home"
+                - "traefik.tags=monitoring"
+
+configs:
+    traefik_config:
+        name: traefik-${TRAEFIX_CONF_VERSION}
+        file: /etc/traefik/config.toml
+
+networks:
+    traefik_proxy:
+        external: true
+
+
+
+
+
+# version: '3.5'
+
+# services:
+#   whoami:
+#     image: containous/whoami  # A container that exposes an API to show it's IP address
+#     command: -port 4110
+#     ports:
+#         - "4110:4110/tcp"
+#     networks:
+#         - web
+#     labels:
+#     # - "traefik.frontend.rule=Host:whoami.hyenalab.home"
+#     - "traefik.enable=true"
+#     - "traefik.basic.port=80"
+#     - "traefik.basic.protocol=http"
+#     # - "traefik.backend=e_whoami0"
+#     - "traefik.backend.loadbalancer.sticky=true"
+#     - "traefik.frontend.rule=Host:whoami.scarlettlab.home"
+#     - "traefik.docker.network=traefik-net"
+#     - "traefik.backend.loadbalancer.swarm=true"
+#     deploy:
+#       mode: global
+#       resources:
+#         limits:
+#           memory: 32M
+
+# networks:
+#   web:
+#     external: true
+#     name: home-web
+#   docker:
+#     external: true
+#     name: home-docker
+#   traefik:
+#     external: true
+#     name: traefik-net

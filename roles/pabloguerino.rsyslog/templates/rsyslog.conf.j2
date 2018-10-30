@@ -1,0 +1,187 @@
+#  /etc/rsyslog.conf	Configuration file for rsyslog.
+#
+#			For more information see
+#			/usr/share/doc/rsyslog-doc/html/rsyslog_conf.html
+
+
+# @todo: clean up / minimize this config file
+#
+
+#################
+#### MODULES ####
+#################
+
+$ModLoad imuxsock # provides support for local system logging
+$ModLoad imklog   # provides kernel logging support
+#$ModLoad immark  # provides --MARK-- message capability
+
+###########################
+#### GLOBAL DIRECTIVES ####
+###########################
+
+#
+# Use traditional timestamp format.
+# To enable high precision timestamps, comment out the following line.
+#
+$ActionFileDefaultTemplate RSYSLOG_TraditionalFileFormat
+
+#
+# Set the default permissions for all log files.
+#
+$FileOwner root
+$FileGroup adm
+$FileCreateMode 0640
+$DirCreateMode 0755
+$Umask 0022
+
+#
+# Where to place spool and state files
+#
+$WorkDirectory /var/spool/rsyslog
+
+#
+# Include all config files in /etc/rsyslog.d/
+#
+#$IncludeConfig /etc/rsyslog.d/*.conf
+
+###########################
+#### TEMPLATES         ####
+###########################
+# SOURCE: https://www.rsyslog.com/storing-and-forwarding-remote-messages/
+# log every host in its own directory
+$template RemoteHost,"/var/syslog/hosts/%HOSTNAME%/%$YEAR%/%$MONTH%/%$DAY%/syslog.log"
+
+
+#######################
+#### RULES/RuleSet ####
+#######################
+
+#
+# First some standard log files.  Log by facility.
+#
+# Local Logging
+$RuleSet local
+kern.*				-/var/log/kern.log
+# kern.*					/var/log/messages
+auth,authpriv.*			/var/log/auth.log
+*.*;auth,authpriv.none		-/var/log/syslog
+# cron.*				/var/log/cron
+daemon.*			-/var/log/daemon.log
+lpr.*				-/var/log/lpr.log
+mail.*				-/var/log/mail.log
+user.*				-/var/log/user.logs
+
+#
+# Logging for the mail system.  Split it up so that
+# it is easy to write scripts to parse these files.
+#
+mail.info			-/var/log/mail.info
+mail.warn			-/var/log/mail.warn
+mail.err			/var/log/mail.err
+
+#
+# Logging for INN news system.
+#
+news.crit			/var/log/news/news.crit
+news.err			/var/log/news/news.err
+news.notice			-/var/log/news/news.notice
+
+# uucp,news.crit                                          /var/log/spooler
+local7.*                                                /var/log/boot.log
+
+#
+# Some "catch-all" log files.
+#
+*.=debug;\
+	auth,authpriv.none;\
+	news.none;mail.none	-/var/log/debug
+*.=info;*.=notice;*.=warn;\
+	auth,authpriv.none;\
+	cron,daemon.none;\
+	mail,news.none		-/var/log/messages
+
+#
+# Emergencies are sent to everybody logged in.
+#
+*.emerg				:omusrmsg:*
+
+#
+# I like to have messages displayed on the console, but only on a virtual
+# console I usually leave idle.
+#
+#daemon,mail.*;\
+#	news.=crit;news.=err;news.=notice;\
+#	*.=debug;*.=info;\
+#	*.=notice;*.=warn	/dev/tty8
+
+# The named pipe /dev/xconsole is for the `xconsole' utility.  To use it,
+# you must invoke `xconsole' with the `-file' option:
+#
+#    $ xconsole -file /dev/xconsole [...]
+#
+# NOTE: adjust the list below, or you'll go crazy if you have a reasonably
+#      busy site..
+#
+daemon.*;mail.*;\
+	news.err;\
+	*.=debug;*.=info;\
+	*.=notice;*.=warn	|/dev/xconsole
+
+# use the local RuleSet as default if not specified otherwise
+$DefaultRuleset local
+
+{% if type == "client" %}
+
+# Remote Logging
+$RuleSet remote
+*.* ?RemoteHost
+
+# Send messages we receive to Gremlin
+*.*   @{{ rsyslog_master }}:514
+
+{% endif %}
+
+
+
+###############
+#### PERF  ####
+###############
+# SOURCE: https://docs.openshift.com/container-platform/3.6/install_config/aggregate_logging_sizing.html
+
+# NOTE: In cases when the Rsyslog server is not reachable via network, append the below lines to /etc/rsyslog.conf file on the client side in order temporarily store the logs in a disk buffered file, until the server comes online.
+{% if type == "client" %}
+
+# $ActionQueueFileName queue
+# $ActionQueueMaxDiskSpace 1g
+# $ActionQueueSaveOnShutdown on
+# $ActionQueueType LinkedList
+# $ActionResumeRetryCount -1
+
+$ActionQueueType LinkedList # use asynchronous processing
+$ActionQueueFileName srvrfwd1 # set file name, also enables disk mode
+$ActionResumeRetryCount -1 # infinite retries on insert failure
+$ActionQueueSaveOnShutdown on # save in-memory data if rsyslog shuts down
+$ActionQueueMaxDiskSpace 1g # Don't use more than this much space for the queue
+{% endif %}
+
+
+$IMUXSockRateLimitInterval 0
+$IMJournalRatelimitInterval 0
+
+####################
+#### Listeners  ####
+####################
+# SOURCE: https://www.rsyslog.com/storing-and-forwarding-remote-messages/
+{% if type == "server" %}
+# provides UDP syslog reception
+$ModLoad imudp
+$InputUDPServerBindRuleset remote
+$UDPServerRun 514
+
+# provides TCP syslog reception
+$ModLoad imtcp
+# bind ruleset to tcp listener
+$InputTCPServerBindRuleset remote
+# and activate it:
+$InputTCPServerRun 514
+{% endif %}

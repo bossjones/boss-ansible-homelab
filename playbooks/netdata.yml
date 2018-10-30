@@ -1,0 +1,43 @@
+---
+
+- hosts: "{{ myhosts }}"
+  become: True
+  become_user: root
+  tasks:
+    # - name: "[DOCKER] - run netdata"
+    #   shell: >
+    #   docker run -d \
+    #   --cap-add SYS_PTRACE \
+    #   --restart=always \
+    #   -v /proc:/host/proc:ro \
+    #   -v /sys:/host/sys:ro \
+    #   -p 19999:19999 \
+    #   --name swarmops-netdata \
+    #   titpetric/netdata
+    #   tags: docker
+    #   register: docker_ps
+
+    - name: "[DOCKER] - run netdata"
+      shell: 'curl "https://bootstrap.pypa.io/get-pip.py" -o "get-pip.py";python get-pip.py'
+
+    # - name: upgrade all packages
+    #   yum: name=* state=latest
+
+    - name: pip install docker-py
+      pip:
+        name: docker-py
+
+    - name: Create a container with limited capabilities
+      docker_container:
+        name: swarmops-netdata
+        ports:
+        - "19999:19999"
+        image: titpetric/netdata
+        command: sleep infinity
+        restart_policy: always
+        state: started
+        capabilities:
+          - sys_ptrace
+        volumes:
+          - /proc:/host/proc:ro
+          - /sys:/host/sys:ro

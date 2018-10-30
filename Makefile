@@ -69,3 +69,6 @@ tmux-provision:
 
 byobu-provision:
 	@ansible-playbook -vvv -i inventory-homelab/ bootstrap_office.yml --tags "byobu" -f 10
+
+centos-provision:
+	ansible-playbook -i hosts.centos7.vagrant playbooks/wrapper.yml -e "myhosts=swarm" -u root

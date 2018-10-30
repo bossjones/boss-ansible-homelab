@@ -31,3 +31,19 @@ roles/*
 .vagrant/
 *.log
 *.retry
+
+# taken from ansible_stuff
+!roles/ansible-journald
+!roles/ansible-role-traefik-swarm
+!roles/ansible-rsyslog
+!roles/ansible-sensu
+!roles/geerlingguy.nfs
+!roles/grycap.nfs
+!roles/kernel_upgrade
+!roles/molecule_includes
+!roles/beegfs
+!roles/telegraf
+!roles/git
+!roles/docker
+!roles/pabloguerino.rsyslog
+*.retry
